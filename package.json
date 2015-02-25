@@ -1,0 +1,35 @@
+{
+  "name": "nodebb-plugin-rainbows",
+  "version": "0.0.1",
+  "description": "NodeBB Rainbows",
+  "main": "library.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yariplus/nodebb-plugin-rainbows"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "rainbows"
+  ],
+  "author": {
+    "name": "yariplus",
+    "email": "tafike@gmail.com"
+  },
+  "license": "CC0",
+  "bugs": {
+    "url": "https://github.com/yariplus/nodebb-plugin-rainbows/issues"
+  },
+  "readme": "",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "async": "^0.9.0"
+  },
+  "nbbpm": {
+    "compatibility": "^0.5.0"
+  },
+  "homepage": "https://github.com/yariplus/nodebb-plugin-rainbows"
+}
