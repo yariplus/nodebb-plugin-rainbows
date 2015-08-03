@@ -1,16 +1,15 @@
 {
 	"id": "nodebb-plugin-rainbows",
 	"name": "NodeBB Rainbows",
-	"description": "Make rainbows on your posts. Smile!",
+	"description": "Make rainbows in your posts. Smile!",
 	"url": "https://github.com/yariplus/nodebb-plugin-rainbows",
     "less": [
         "public/less/style.less"
     ],
 	"library": "./library.js",
 	"hooks": [
-		{ "hook": "static:app.load", "method": "onLoad" },
-		{ "hook": "filter:parse.post", "method": "parsePost", "priority": 100 },
-        { "hook": "filter:parse.raw", "method": "parseRaw", "priority": 100 },
+		{ "hook": "static:app.load",           "method": "onLoad" },
+		{ "hook": "filter:parse.post",         "method": "parsePost" },
         { "hook": "filter:admin.header.build", "method": "adminHeader" }
 	],
 	"templates": "./public/templates"
