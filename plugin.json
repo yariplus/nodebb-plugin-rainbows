@@ -9,7 +9,9 @@
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:app.load",           "method": "onLoad" },
+		{ "hook": "filter:parse.raw",          "method": "parseRaw" },
 		{ "hook": "filter:parse.post",         "method": "parsePost" },
+		{ "hook": "filter:parse.signature",    "method": "parseSignature" },
         { "hook": "filter:admin.header.build", "method": "adminHeader" }
 	],
 	"templates": "./public/templates"

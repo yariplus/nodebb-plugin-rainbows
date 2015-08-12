@@ -104,13 +104,12 @@
 		callback(null, custom_header);
 	}
 
-	Rainbows.parsePost = function (data, callback) {
-
-		if (data && data.postData && data.postData.content) {
+	Rainbows.parseRaw = function (data, callback) {
+		if (data) {
 
 			var pattern = /-=[^\0]+?=-/g;
 
-			var matches = data.postData.content.match(pattern) || [];
+			var matches = data.match(pattern) || [];
 
 			if (matches.length === 0) return callback(null, data);
 
@@ -152,7 +151,7 @@
 					try {
 						rainbow.setSpectrumByArray(options.colors);
 					} catch (e) {
-						data.postData.content = data.postData.content.replace(match, sliced);
+						data = data.replace(match, sliced);
 						return callback(null, data);
 					}
 					if (options.range === 0) {
@@ -195,7 +194,7 @@
 				}
 				if (options.bgcolor) parsed = '<span style="background-color:' + options.bgcolor + '">' + parsed + '</span>';
 
-				data.postData.content = data.postData.content.replace(match, parsed);
+				data = data.replace(match, parsed);
 
 				callback();
 			}, function(err){
@@ -204,6 +203,21 @@
 		}else{
 			callback(null, data);
 		}
+	};
+
+	Rainbows.parseSignature = function (data, callback) {
+		Rainbows.parseRaw(data.userData.signature, function (err, signature) {
+			data.userData.signature = signature;
+			callback(err, data);
+		});
+	};
+
+	Rainbows.parsePost = function (data, callback) {
+		console.log(data);
+		Rainbows.parseRaw(data.postData.content, function (err, content) {
+			data.postData.content = content;
+			callback(err, data);
+		});
 	}
 
 	module.exports = Rainbows;
