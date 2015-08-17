@@ -6,12 +6,13 @@
 
 	var app, router, middleware,
 
-		Rainbows    = { },
-		Rainbow     = require('./lib/rainbowvis.js'),
-		async       = require('async'),
-		meta        = module.parent.require('./meta'),
-		Settings    = module.parent.require('./settings'),
-		SocketAdmin = module.parent.require('./socket.io/admin'),
+		Rainbows      = { },
+		Rainbow       = require('./lib/rainbowvis.js'),
+		async         = require('async'),
+		meta          = module.parent.require('./meta'),
+		Settings      = module.parent.require('./settings'),
+		SocketAdmin   = module.parent.require('./socket.io/admin'),
+		SocketPlugins = module.parent.require('./socket.io/plugins'),
 		themes = { },
 
 		defaultSettings = {
@@ -40,6 +41,11 @@
 			});
 		};
 
+		SocketPlugins.rainbows = {
+			rainbowify: function (socket, data, next) {
+				Rainbows.parseRaw(data.text, next);
+			}
+		};
 		callback();
 	};
 

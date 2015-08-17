@@ -14,5 +14,8 @@
 		{ "hook": "filter:parse.signature",    "method": "parseSignature" },
         { "hook": "filter:admin.header.build", "method": "adminHeader" }
 	],
+	"scripts": [
+		"public/js/client.js"
+	],
 	"templates": "./public/templates"
 }
