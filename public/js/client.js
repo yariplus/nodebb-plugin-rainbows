@@ -99,6 +99,18 @@ $(document).ready(function(){
 			};
 		});
 	}
+
+	require(['composer', 'composer/controls'], function(composer, controls) {
+		composer.addButton('rainbows', function(textarea, selectionStart, selectionEnd) {
+			if(selectionStart === selectionEnd){
+				controls.insertIntoTextarea(textarea, '-=()Insert Text Here=-');
+				controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 20);
+			} else {
+				controls.wrapSelectionInTextareaWith(textarea, '-=()', '=-');
+				controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 4);
+			}
+		});
+	});
 });
 
 // Custom Redactor Hooks

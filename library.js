@@ -219,7 +219,6 @@
 	};
 
 	Rainbows.parsePost = function (data, callback) {
-		console.log(data);
 		Rainbows.parseRaw(data.postData.content, function (err, content) {
 			data.postData.content = content;
 			callback(err, data);
