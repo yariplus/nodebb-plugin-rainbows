@@ -17,9 +17,9 @@
 
 		defaultSettings = {
 			'themes': [
-				'flutter=magenta,yellow,range:0',
-				'dashie=red,orange,yellow,green,blue,purple,range:0',
-				'sunbutt=lightblue,lightpink,lightgreen,range:0'
+				'flutter=magenta,yellow',
+				'dashie=red,orange,yellow,green,blue,purple',
+				'sunbutt=lightblue,lightpink,lightgreen'
 			]
 		};
 
@@ -49,7 +49,7 @@
 		callback();
 	};
 
-	Rainbows.settings = new Settings('rainbows', '0.0.1', defaultSettings, loadSettings);
+	Rainbows.settings = new Settings('rainbows', '1.1.0', defaultSettings, loadSettings);
 
 	var readOption = function (options, option) {
 		option = option.split(':');
@@ -86,7 +86,7 @@
 
 	function loadSettings() {
 		var config = Rainbows.settings.get();
-		console.log(JSON.stringify(config));
+
 		themes = {};
 		if (config && config.themes && Array.isArray(config.themes)) {
 			config.themes.forEach(function (value) {
@@ -106,7 +106,7 @@
 		// Image is rainbow-icon.png from:
 		// http://p.yusukekamiyamane.com/
 		// CC-BY
-		
+
 		callback(null, custom_header);
 	}
 
