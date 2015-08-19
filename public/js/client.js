@@ -6,6 +6,7 @@ var rainbowModalBody = String()
 
 + '<label>Add Color</label><br>'
 + '<button class="btn color-preset"><div style="background-color:red;width:20px;height:20px;" data-color="red"></div></button>'
++ '<button class="btn color-preset"><div style="background-color:orange;width:20px;height:20px;" data-color="orange"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:yellow;width:20px;height:20px;" data-color="yellow"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:lime;width:20px;height:20px;" data-color="lime"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:cyan;width:20px;height:20px;" data-color="cyan"></div></button>'
@@ -13,6 +14,7 @@ var rainbowModalBody = String()
 + '<button class="btn color-preset"><div style="background-color:magenta;width:20px;height:20px;" data-color="magenta"></div></button>'
 
 + '<button class="btn color-preset"><div style="background-color:maroon;width:20px;height:20px;" data-color="maroon"></div></button>'
++ '<button class="btn color-preset"><div style="background-color:sienna;width:20px;height:20px;" data-color="sienna"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:olive;width:20px;height:20px;" data-color="olive"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:green;width:20px;height:20px;" data-color="green"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:teal;width:20px;height:20px;" data-color="teal"></div></button>'
@@ -24,7 +26,9 @@ var rainbowModalBody = String()
 + '<button class="btn color-preset"><div style="background-color:gray;width:20px;height:20px;" data-color="gray"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:black;width:20px;height:20px;" data-color="black"></div></button>'
 
-+ '<button class="btn" id="picker"><div style="width:20px;height:20px;"></div></button>';
++ '<br>'
++ '<button class="btn" id="picker-button"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-cog"></i>&nbsp;Custom&nbsp;Color&nbsp;</div></button>'
++ '<button class="btn" id="color-custom"><div style="background-color:pink;width:20px;height:20px;" data-color="pink"></div></button>';
 
 var rainbowsRedactorModal = String()
 + '<section id="redactor-modal-rainbows">'
@@ -53,58 +57,56 @@ var rainbowsComposerModal = String()
 // Redactor
 $(document).ready(function(){
 	if ($ && $.Redactor) {
+		if (!$.Redactor.opts.plugins) $.Redactor.opts.plugins = [];
+		$.Redactor.opts.plugins.push('rainbows');
+		$.Redactor.prototype.rainbows = function() {
+			return {
+				getTemplate: function() {
+					return rainbowsRedactorModal
+				},
+				init: function() {
+					var button = this.button.add('rainbows', 'Rainbows'),
+						redactor = this;
 
-			if (!$.Redactor.opts.plugins) $.Redactor.opts.plugins = [];
-			$.Redactor.opts.plugins.push('rainbows');
-			$.Redactor.prototype.rainbows = function() {
-				return {
-					getTemplate: function() {
-						return rainbowsRedactorModal
-					},
-					init: function() {
-						var button = this.button.add('rainbows', 'Rainbows'),
-							redactor = this;
+					this.button.addCallback(button, this.rainbows.show);
+				},
+				show: function() {
+					this.modal.addTemplate('rainbows', this.rainbows.getTemplate());
 
-						this.button.addCallback(button, this.rainbows.show);
-					},
-					show: function() {
-						this.modal.addTemplate('rainbows', this.rainbows.getTemplate());
+					this.modal.load('rainbows', 'Rainbows', 400);
 
-						this.modal.load('rainbows', 'Rainbows', 400);
+					this.modal.createCancelButton();
 
-						this.modal.createCancelButton();
+					var button = this.modal.createActionButton('Insert');
+					button.on('click', this.rainbows.insert);
 
-						var button = this.modal.createActionButton('Insert');
-						button.on('click', this.rainbows.insert);
+					$('#rainbowsPreview').html(this.selection.getHtml() || "Some Example Text");
+					rainbowsModalEvents();
 
-						$('#rainbowsPreview').html(this.selection.getHtml() || "Some Example Text");
-						rainbowsModalEvents();
+					this.selection.save();
+					this.modal.show();
+				},
+				insert: function(buttonName) {
+					var redactor = this;
+					var sel = this.selection.getHtml();
+					var html = '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + ( sel || 'Some Example Text') + '=-';
 
-						this.selection.save();
-						this.modal.show();
-					},
-					insert: function(buttonName) {
-						var redactor = this;
-						var sel = this.selection.getHtml();
-						var html = '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + ( sel || 'Some Example Text') + '=-';
+					socket.emit('plugins.rainbows.rainbowify', {text: html}, function (err, data) {
+						if (err) console.log(err);
 
-						socket.emit('plugins.rainbows.rainbowify', {text: html}, function (err, data) {
-							if (err) console.log(err);
-
-							redactor.selection.restore();
-							redactor.insert.html(data);
-							redactor.code.sync();
-							redactor.modal.close();
-						});
-					}
-				};
+						redactor.selection.restore();
+						redactor.insert.html(data);
+						redactor.code.sync();
+						redactor.modal.close();
+					});
+				}
 			};
-
+		};
 	}else{
 		$('body').append(rainbowsComposerModal);
 
 		$('#rainbows-insert').on('click', function (e) {
-			require(['composer/controls'], function(controls) {
+			require(['composer/controls', 'composer/preview'], function(controls, preview) {
 				var selectionStart = $('#rainbowsPreview').data('start');
 				var selectionEnd = $('#rainbowsPreview').data('end');
 				var textarea = $('#rainbowsPreview').data('el');
@@ -126,6 +128,8 @@ $(document).ready(function(){
 					controls.wrapSelectionInTextareaWith(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')', '=-');
 					controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 4);
 				}
+
+				preview.render($(textarea).parent().parent().parent());
 			});
 		});
 
@@ -146,23 +150,21 @@ $(document).ready(function(){
 
 function rainbowsModalEvents() {
 	require(['vendor/colorpicker/colorpicker'], function (){
-		$('#picker').ColorPicker({
+		$('#picker-button').ColorPicker({
 			onBeforeShow: function () {
-				$(this).ColorPickerSetColor($('#picker div').css('background-color'));
+				$(this).ColorPickerSetColor($('#color-custom').find('div').first().css('background-color'));
 			},
 			onChange: function (hsb, hex, rgb) {
-				$('#picker div').css('background-color', '#' + hex);
+				$('#color-custom').find('div').first().css('background-color', '#' + hex).data('color', '#' + hex);
 			}
-		}).bind('keyup', function(){
-			$(this).ColorPickerSetColor($('#picker div').css('background-color'));
 		});
 	});
 
-	$('.color-preset').on('click', function () {
+	$('.color-preset, #color-custom').on('click', function () {
 		if (!$('#rainbowsPreview').data('colors')) {
-			$('#rainbowsPreview').data('colors', $(this).find('div').attr('data-color'));
+			$('#rainbowsPreview').data('colors', $(this).find('div').data('color'));
 		}else{
-			$('#rainbowsPreview').data('colors', $('#rainbowsPreview').data('colors') + ',' + $(this).find('div').attr('data-color'));
+			$('#rainbowsPreview').data('colors', $('#rainbowsPreview').data('colors') + ',' + $(this).find('div').data('color'));
 		}
 		socket.emit('plugins.rainbows.rainbowify', {text: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, data) {
 			if (err) console.log(err);
@@ -170,31 +172,3 @@ function rainbowsModalEvents() {
 		});
 	});
 }
-
-// Custom Redactor Hooks
-// $(window).on('action:redactor.init', function(event) {
-	// Add plugins here.
-	// $.Redactor.prototype.advanced = function() {
-		// return {
-			// init: function ()
-			// {
-				// var button = this.button.add('advanced', 'Advanced');
-				// this.button.addCallback(button, this.advanced.testButton);
-			// },
-			// testButton: function(buttonName)
-			// {
-				// alert(buttonName);
-			// }
-		// };
-	// };
-// });
-
-// $(window).on('action:redactor.loading', function(event, redactor) {
-	// Modify options here.
-	// redactor.opts.plugins.push('advanced');
-// });
-
-// $(window).on('action:redactor.loaded', function(event, redactor) {
-	// You can access the elements here.
-	// console.log(redactor.$textarea);
-// });
