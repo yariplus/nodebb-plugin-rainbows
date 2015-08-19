@@ -59,3 +59,9 @@ Multi-line with theme and embed link:
 Themes are controlled inside the fancy ACP page (*With awesome colored nav!!*):
 
 ![](http://puu.sh/jnpTq/ac28a76c8e.png)
+
+## Composer GUI
+
+Composer buttons are added the the default composer and redactor composer. The button opens a GUI for editing your rainbow.
+
+![](http://puu.sh/jGRp0/a8478537f9.png)
