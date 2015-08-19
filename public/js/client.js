@@ -1,16 +1,19 @@
 var rainbowModalBody = String()
++ '<label>Selected Text</label><br>'
 + '<div class="panel panel-default">'
 + '<div class="panel-body">'
 + '<span id="rainbowsPreview"><span>'
 + '</div></div>'
 
-+ '<label>Add Color</label><br>'
++ '<label>Add a Color</label><br>'
 + '<button class="btn color-preset"><div style="background-color:red;width:20px;height:20px;" data-color="red"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:orange;width:20px;height:20px;" data-color="orange"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:yellow;width:20px;height:20px;" data-color="yellow"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:lime;width:20px;height:20px;" data-color="lime"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:cyan;width:20px;height:20px;" data-color="cyan"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:blue;width:20px;height:20px;" data-color="blue"></div></button>'
++ '<button class="btn color-preset"><div style="background-color:blueviolet;width:20px;height:20px;" data-color="blueviolet"></div></button>'
++ '<button class="btn color-preset"><div style="background-color:violet;width:20px;height:20px;" data-color="violet"></div></button>'
 + '<button class="btn color-preset"><div style="background-color:magenta;width:20px;height:20px;" data-color="magenta"></div></button>'
 
 + '<button class="btn color-preset"><div style="background-color:maroon;width:20px;height:20px;" data-color="maroon"></div></button>'
@@ -28,7 +31,12 @@ var rainbowModalBody = String()
 
 + '<br>'
 + '<button class="btn" id="picker-button"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-cog"></i>&nbsp;Custom&nbsp;Color&nbsp;</div></button>'
-+ '<button class="btn" id="color-custom"><div style="background-color:pink;width:20px;height:20px;" data-color="pink"></div></button>';
++ '<button class="btn" id="color-custom"><div style="background-color:pink;width:20px;height:20px;" data-color="pink"></div></button>'
+
++ '<br><br>'
++ '<label>Remove a Color</label><br>'
++ '<button class="btn" id="rainbows-remove-one"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-minus"></i>&nbsp;One&nbsp;</div></button>'
++ '<button class="btn" id="rainbows-remove-all"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-minus"></i>&nbsp;All&nbsp;</div></button>'
 
 var rainbowsRedactorModal = String()
 + '<section id="redactor-modal-rainbows">'
@@ -111,15 +119,9 @@ $(document).ready(function(){
 				var selectionEnd = $('#rainbowsPreview').data('end');
 				var textarea = $('#rainbowsPreview').data('el');
 
-				console.log("start 1:" + selectionStart);
-				console.log("end 1:" + selectionEnd);
-
 				var sel = $('#rainbowsPreview').data('colors') ? $('#rainbowsPreview').data('colors').length : 0;
 				selectionStart += sel;
 				selectionEnd += sel;
-
-				console.log("start 2:" + selectionStart);
-				console.log("end 2:" + selectionEnd);
 
 				if (selectionStart === selectionEnd){
 					controls.insertIntoTextarea(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')Some Example Text=-');
@@ -166,9 +168,32 @@ function rainbowsModalEvents() {
 		}else{
 			$('#rainbowsPreview').data('colors', $('#rainbowsPreview').data('colors') + ',' + $(this).find('div').data('color'));
 		}
-		socket.emit('plugins.rainbows.rainbowify', {text: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, data) {
-			if (err) console.log(err);
-			$('#rainbowsPreview').html(data);
-		});
+		rainbowsPreview();
+	});
+
+	$('#rainbows-remove-one').on('click', function () {
+		var colors = $('#rainbowsPreview').data('colors'),
+			clip = colors.lastIndexOf(",");
+
+		if (~clip) {
+			colors = colors.slice(0, clip);
+			$('#rainbowsPreview').data('colors', colors);
+			rainbowsPreview();
+		}else{
+			$('#rainbowsPreview').data('colors', null);
+			$('#rainbowsPreview').html($('#rainbowsPreview').text());
+		}
+	});
+
+	$('#rainbows-remove-all').on('click', function () {
+		$('#rainbowsPreview').data('colors', null);
+		$('#rainbowsPreview').html($('#rainbowsPreview').text());
+	});
+}
+
+function rainbowsPreview() {
+	socket.emit('plugins.rainbows.rainbowify', {text: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, data) {
+		if (err) console.log(err);
+		$('#rainbowsPreview').html(data);
 	});
 }
