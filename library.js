@@ -1,18 +1,19 @@
 "use strict";
 
-(function(){
+(function(Rainbows, NodeBB){
 
 	// Smile! With the power of smiles, the world becomes connected.
 
 	var app, router, middleware,
 
-		Rainbows      = { },
-		Rainbow       = require('./lib/rainbowvis.js'),
+		RainbowVis    = require('./lib/rainbowvis.js'),
 		async         = require('async'),
-		meta          = module.parent.require('./meta'),
-		Settings      = module.parent.require('./settings'),
-		SocketAdmin   = module.parent.require('./socket.io/admin'),
-		SocketPlugins = module.parent.require('./socket.io/plugins'),
+
+		meta          = NodeBB.require('./meta'),
+		Settings      = NodeBB.require('./settings'),
+		SocketAdmin   = NodeBB.require('./socket.io/admin'),
+		SocketPlugins = NodeBB.require('./socket.io/plugins'),
+
 		themes = { },
 
 		defaultSettings = {
@@ -21,7 +22,7 @@
 				'dashie=red,orange,yellow,green,blue,purple',
 				'sunbutt=lightblue,lightpink,lightgreen'
 			],
-			rainbowifyTags: 0,
+			rainbowifyTags: 1,
 			hueModifier: 0,
 			lumModifier: 40
 		};
@@ -50,7 +51,7 @@
 		callback();
 	};
 
-	Rainbows.settings = new Settings('rainbows', '1.1.0', defaultSettings, loadSettings);
+	Rainbows.settings = new Settings('rainbows', '1.2.0', defaultSettings, loadSettings);
 
 	var readOption = function (options, option) {
 		option = option.split(':');
@@ -125,7 +126,7 @@
 				var sliced = match.slice(2, match.length-2),
 					trimmed = sliced,
 					characters,
-					rainbow = new Rainbow(),
+					rainbow = new RainbowVis(),
 					html = {},
 					options = {
 						range: 0,
@@ -234,6 +235,4 @@
 		next(null, data);
 	};
 
-	module.exports = Rainbows;
-
-}(module));
+}(module.exports, module.parent));
