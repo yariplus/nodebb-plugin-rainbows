@@ -148,6 +148,10 @@ $(document).ready(function(){
 			$('#rainbowsPreview').data('end', selectionEnd);
 		});
 	});
+});
+
+$(window).on('action:ajaxify.contentLoaded', function (e, data) {
+	if (data.tpl.slice(0, 5) === 'admin') return;
 
 	if (config.rainbowifyTags) {
 		var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
