@@ -148,6 +148,32 @@ $(document).ready(function(){
 			$('#rainbowsPreview').data('end', selectionEnd);
 		});
 	});
+
+	if (config.rainbowifyTags) {
+		var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+
+		$('[data-tag], .tag').each(function () {
+			var $tag = $(this);
+			var tag = $tag.attr('data-tag') || $tag.text();
+			var x = tag.charAt(0) || 'm';
+			var y = tag.charAt(1) || 'm';
+			var z = tag.charAt(2) || 'm';
+			x = x.toLowerCase();
+			y = y.toLowerCase();
+			z = z.toLowerCase();
+			x = letters.indexOf(x);
+			y = letters.indexOf(y);
+			z = letters.indexOf(z);
+			x = x === -1 ? 12 : x;
+			y = y === -1 ? 12 : y;
+			z = z === -1 ? 12 : z;
+			var hue = (x * 14 + z * 28 + config.hueModifier) % 360;
+			var sat = 100 - z;
+			var lum = 95 - y / 6 - (config.lumModifier > 80 || config.lumModifier < 0 ? 40 : config.lumModifier);
+			var color = 'hsl('+hue+','+sat+'%,'+lum+'%)';
+			$tag.css('color', color);
+		});
+	}
 });
 
 function rainbowsModalEvents() {

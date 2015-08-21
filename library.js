@@ -16,11 +16,14 @@
 		themes = { },
 
 		defaultSettings = {
-			'themes': [
+			themes: [
 				'flutter=magenta,yellow',
 				'dashie=red,orange,yellow,green,blue,purple',
 				'sunbutt=lightblue,lightpink,lightgreen'
-			]
+			],
+			rainbowifyTags: 0,
+			hueModifier: 0,
+			lumModifier: 40
 		};
 
 	Rainbows.onLoad = function (params, callback) {
@@ -36,9 +39,7 @@
 		router.get('/api/admin/plugins/rainbows', renderAdmin);
 
 		SocketAdmin.settings.syncRainbows = function () {
-			Rainbows.settings.sync(function(){
-				loadSettings();
-			});
+			Rainbows.settings.sync(loadSettings);
 		};
 
 		SocketPlugins.rainbows = {
@@ -224,6 +225,14 @@
 			callback(err, data);
 		});
 	}
+
+	Rainbows.configGet = function (data, next) {
+		data.rainbowifyTags = parseInt(Rainbows.settings.get('rainbowifyTags'), 10) === 1;
+		data.hueModifier = parseInt(Rainbows.settings.get('hueModifier'), 10) || 0;
+		data.lumModifier = parseInt(Rainbows.settings.get('lumModifier'), 10) || 40;
+
+		next(null, data);
+	};
 
 	module.exports = Rainbows;
 
