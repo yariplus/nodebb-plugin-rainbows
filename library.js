@@ -130,7 +130,7 @@
 					html = {},
 					options = {
 						range: 0,
-						colors: [],
+						colors: [ 'red', 'orange', 'gold', 'lime', 'deepskyblue', 'blue', 'blueviolet', 'magenta'],
 						bgcolor: '',
 						mirror: false
 					};
