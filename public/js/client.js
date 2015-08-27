@@ -63,54 +63,40 @@ var rainbowsComposerModal = String()
 + '</div>';
 
 // Redactor
+$(window).on('action:redactor.load', function (event, Redactor) {
+	Redactor.addButton('Rainbows', '', function (redactor) {
+		function insert(buttonName) {
+			var sel = redactor.selection.getHtml();
+			var html = '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + ( sel || 'Some Example Text') + '=-';
+
+			socket.emit('plugins.rainbows.rainbowify', {text: html}, function (err, data) {
+				if (err) console.log(err);
+
+				redactor.selection.restore();
+				redactor.insert.html(data);
+				redactor.code.sync();
+				redactor.modal.close();
+			});
+		}
+
+		redactor.modal.addTemplate('rainbows', rainbowsRedactorModal);
+		redactor.modal.load('rainbows', 'Rainbows', 400);
+		redactor.modal.createCancelButton();
+
+		var button = redactor.modal.createActionButton('Insert');
+		button.on('click', insert);
+
+		$('#rainbowsPreview').html(redactor.selection.getHtml() || "Some Example Text");
+		rainbowsModalEvents();
+
+		redactor.selection.save();
+		redactor.modal.show();
+	});
+});
+
+// Composer
 $(document).ready(function(){
-	if ($ && $.Redactor) {
-		if (!$.Redactor.opts.plugins) $.Redactor.opts.plugins = [];
-		$.Redactor.opts.plugins.push('rainbows');
-		$.Redactor.prototype.rainbows = function() {
-			return {
-				getTemplate: function() {
-					return rainbowsRedactorModal
-				},
-				init: function() {
-					var button = this.button.add('rainbows', 'Rainbows'),
-						redactor = this;
-
-					this.button.addCallback(button, this.rainbows.show);
-				},
-				show: function() {
-					this.modal.addTemplate('rainbows', this.rainbows.getTemplate());
-
-					this.modal.load('rainbows', 'Rainbows', 400);
-
-					this.modal.createCancelButton();
-
-					var button = this.modal.createActionButton('Insert');
-					button.on('click', this.rainbows.insert);
-
-					$('#rainbowsPreview').html(this.selection.getHtml() || "Some Example Text");
-					rainbowsModalEvents();
-
-					this.selection.save();
-					this.modal.show();
-				},
-				insert: function(buttonName) {
-					var redactor = this;
-					var sel = this.selection.getHtml();
-					var html = '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + ( sel || 'Some Example Text') + '=-';
-
-					socket.emit('plugins.rainbows.rainbowify', {text: html}, function (err, data) {
-						if (err) console.log(err);
-
-						redactor.selection.restore();
-						redactor.insert.html(data);
-						redactor.code.sync();
-						redactor.modal.close();
-					});
-				}
-			};
-		};
-	}else{
+	if (!$.Redactor) {
 		$('body').append(rainbowsComposerModal);
 
 		$('#rainbows-insert').on('click', function (e) {
@@ -135,19 +121,19 @@ $(document).ready(function(){
 			});
 		});
 
+		require(['composer'], function (composer) {
+			composer.addButton('rainbows', function(textarea, selectionStart, selectionEnd) {
+				$('#rainbows-modal').modal();
+				$('#rainbowsPreview').html($(textarea).val().slice(selectionStart, selectionEnd) || "Some Example Text");
+				$('#rainbowsPreview').data('colors', null);
+				$('#rainbowsPreview').data('el', textarea);
+				$('#rainbowsPreview').data('start', selectionStart);
+				$('#rainbowsPreview').data('end', selectionEnd);
+			});
+		});
+
 		rainbowsModalEvents();
 	}
-
-	require(['composer'], function (composer) {
-		composer.addButton('rainbows', function(textarea, selectionStart, selectionEnd) {
-			$('#rainbows-modal').modal();
-			$('#rainbowsPreview').html($(textarea).val().slice(selectionStart, selectionEnd) || "Some Example Text");
-			$('#rainbowsPreview').data('colors', null);
-			$('#rainbowsPreview').data('el', textarea);
-			$('#rainbowsPreview').data('start', selectionStart);
-			$('#rainbowsPreview').data('end', selectionEnd);
-		});
-	});
 });
 
 $(window).on('action:ajaxify.contentLoaded', function (e, data) {
