@@ -130,7 +130,7 @@
 					html = {},
 					options = {
 						range: 0,
-						colors: [ 'red', 'orange', 'gold', 'lime', 'deepskyblue', 'blue', 'blueviolet', 'magenta'],
+						colors: [],
 						bgcolor: '',
 						mirror: false
 					};
@@ -156,24 +156,29 @@
 
 				if (options.colors.length > 0) {
 					if (options.colors.length === 1) options.colors[1] = options.colors[0];
-					try {
-						rainbow.setSpectrumByArray(options.colors);
-					} catch (e) {
-						data = data.replace(match, sliced);
-						return callback(null, data);
-					}
+
 					if (options.range === 0) {
 						options.range = characters > 1 ? characters : 2;
 					}else{
 						options.range = options.range > options.colors.length ? options.range : options.colors.length;
 					}
 				}else{
+					options.colors = [ 'red', 'orange', 'gold', 'lime', 'deepskyblue', 'blue', 'blueviolet', 'magenta'];
+
 					if (options.range === 0) {
 						options.range = characters > 8 ? characters : 8;
 					}else{
 						options.range = options.range > 8 ? options.range : 8;
 					}
 				}
+
+				try {
+					rainbow.setSpectrumByArray(options.colors);
+				} catch (e) {
+					data = data.replace(match, sliced);
+					return callback(null, data);
+				}
+
 				rainbow.setNumberRange(0, options.range - 1);
 
 				var parsed = "",
