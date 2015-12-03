@@ -1,7 +1,7 @@
 {
 	"id": "nodebb-plugin-rainbows",
 	"name": "NodeBB Rainbows",
-	"description": "Make rainbows in your posts. Smile!",
+	"description": "Add colors and gradients to your posts, tags, and more. Smile!",
 	"url": "https://github.com/yariplus/nodebb-plugin-rainbows",
     "less": [
         "public/less/style.less"
