@@ -12,6 +12,8 @@
 		{ "hook": "filter:parse.raw",          "method": "parseRaw" },
 		{ "hook": "filter:parse.post",         "method": "parsePost" },
 		{ "hook": "filter:parse.signature",    "method": "parseSignature" },
+		{ "hook": "filter:topic.get",          "method": "parseTopic" },
+		{ "hook": "filter:topics.get",         "method": "parseTopics" },
 		{ "hook": "filter:admin.header.build", "method": "adminHeader" },
 		{ "hook": "filter:config.get",         "method": "configGet" }
 	],

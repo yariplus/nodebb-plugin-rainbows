@@ -205,7 +205,10 @@
 						offset++;
 					}
 				}
+
 				if (options.bgcolor) parsed = '<span style="background-color:' + options.bgcolor + '">' + parsed + '</span>';
+
+				parsed = '<span class="rainbowified">' + parsed + '</span>';
 
 				data = data.replace(match, parsed);
 
@@ -230,7 +233,29 @@
 			data.postData.content = content;
 			callback(err, data);
 		});
-	}
+	};
+
+	Rainbows.parseTopic = function (data, callback) {
+		Rainbows.parseRaw(data.topic.title, function (err, title) {
+			data.topic.title = title;
+			console.dir(title);
+			callback(err, data);
+		});
+	};
+
+	Rainbows.parseTopics = function (data, callback) {
+		var topics = [];
+		async.eachSeries(data.topics, function (topic, next) {
+			Rainbows.parseRaw(topic.title, function (err, title) {
+				topic.title = title;
+				topics.push(topic);
+				next();
+			});
+		}, function () {
+			data.topics = topics;
+			callback(null, data);
+		});
+	};
 
 	Rainbows.configGet = function (data, next) {
 		data.rainbowifyTags = parseInt(Rainbows.settings.get('rainbowifyTags'), 10) === 1;

@@ -166,6 +166,16 @@ $(window).on('action:ajaxify.contentLoaded', function (e, data) {
 	}
 });
 
+function getRandomColorStyle() {
+	var	hue = Math.round(Math.random() * 360) + config.hueModifier
+	var	sat = Math.round(90 - Math.random() * 20)
+	var	lum = Math.round(90 - Math.random() * 20)
+
+	hue = hue > 360 ? hue - 360 : hue
+
+	return 'hsl(' + hue + ',' + sat + '%,' + lum + '%)';
+}
+
 function rainbowsModalEvents() {
 	require(['vendor/colorpicker/colorpicker'], function (){
 		$('#picker-button').ColorPicker({
@@ -211,5 +221,11 @@ function rainbowsPreview() {
 	socket.emit('plugins.rainbows.rainbowify', {text: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, data) {
 		if (err) console.log(err);
 		$('#rainbowsPreview').html(data);
+	});
+}
+
+if (config.rainbowifyNavbar) {
+	$(window).on('action:ajaxify.end', function(event, data) {
+		$('[component="navbar"]').css('background-color', getRandomColorStyle());
 	});
 }
