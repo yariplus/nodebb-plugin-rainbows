@@ -1,35 +1,37 @@
 {
-  "name": "nodebb-plugin-rainbows",
-  "version": "1.3.1",
-  "description": "Add colors and gradients to your posts, tags, and more. Smile!",
-  "main": "library.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yariplus/nodebb-plugin-rainbows"
-  },
-  "keywords": [
-    "nodebb",
-    "plugin",
-    "rainbows"
-  ],
-  "author": {
-    "name": "yariplus",
-    "email": "tafike@gmail.com"
-  },
-  "license": "CC0",
-  "bugs": {
-    "url": "https://github.com/yariplus/nodebb-plugin-rainbows/issues"
-  },
-  "readme": "",
-  "readmeFilename": "README.md",
-  "dependencies": {
-    "async": "*"
-  },
-  "nbbpm": {
-    "compatibility": "^0.7.0 || ^0.8.0 || ^0.9.0"
-  },
-  "homepage": "https://github.com/yariplus/nodebb-plugin-rainbows"
+	"name": "nodebb-plugin-rainbows",
+	"version": "1.3.1",
+	"description": "Add colors and gradients to your posts, tags, and more. Smile!",
+	"main": "library.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yariplus/nodebb-plugin-rainbows"
+	},
+	"keywords": [
+		"nodebb",
+		"plugin",
+		"colors",
+		"rainbows",
+		"redactor"
+	],
+	"author": {
+		"name": "yariplus",
+		"email": "tafike@gmail.com"
+	},
+	"license": "(CC0-1.0 OR MIT)",
+	"bugs": {
+		"url": "https://github.com/yariplus/nodebb-plugin-rainbows/issues"
+	},
+	"readme": "",
+	"readmeFilename": "README.md",
+	"dependencies": {
+		"async": "*"
+	},
+	"nbbpm": {
+		"compatibility": "^1.0.0"
+	},
+	"homepage": "https://github.com/yariplus/nodebb-plugin-rainbows"
 }
