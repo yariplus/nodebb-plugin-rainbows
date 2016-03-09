@@ -70,11 +70,11 @@ if (config.rainbows.postsEnabled) {
 				var sel = redactor.selection.getHtml();
 				var html = '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + ( sel || 'Some Example Text') + '=-';
 
-				socket.emit('plugins.rainbows.rainbowify', {text: html}, function (err, data) {
-					if (err) console.log(err);
+				socket.emit('plugins.rainbows.colorPost', {text: html}, function (err, result) {
+					if (err || !result) return;
 
 					redactor.selection.restore();
-					redactor.insert.html(data);
+					redactor.insert.html(result.text);
 					redactor.code.sync();
 					redactor.modal.close();
 				});
@@ -123,8 +123,7 @@ if (config.rainbows.postsEnabled) {
 			});
 
 			require(['composer'], function (composer) {
-				socket.emit('plugins.rainbows.canPost', {composer: composer}, function (err) {
-					console.log('back');
+				socket.emit('plugins.rainbows.colorPost', {text: ''}, function (err) {
 					if (err) return;
 					composer.addButton('rainbows', function(textarea, selectionStart, selectionEnd) {
 						$('#rainbows-modal').modal();
@@ -223,16 +222,27 @@ if (config.rainbows.postsEnabled) {
 	}
 
 	function rainbowsPreview() {
-		socket.emit('plugins.rainbows.rainbowify', {text: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, data) {
+		socket.emit('plugins.rainbows.colorPost', {text: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, data) {
 			if (err) console.log(err);
 			$('#rainbowsPreview').html(data);
 		});
 	}
+}
 
-	if (config.rainbows.navbarEnabled) {
-		$(window).on('action:ajaxify.end', function(event, data) {
-			$('[component="navbar"]').css('background-color', getRandomColorStyle());
-		});
-	}
+if (config.rainbows.navbarEnabled) {
+	$(window).on('action:ajaxify.end', function(event, data) {
+		$('[component="navbar"]').css('background-color', getRandomColorStyle());
+	});
+}
 
+if (config.rainbows.topicsEnabled) {
+	$(window).on('action:posts.edited', function (ev, data) {
+		if (data.topic.oldTitle) {
+			socket.emit('plugins.rainbows.colorTopic', {uid: data.topic.uid, cid: data.topic.cid, text: data.topic.title}, function (err, result) {
+				console.log('I got: ');
+				console.log(result);
+				$('[component="topic/title"]').html(result.text);
+			});
+		}
+	});
 }

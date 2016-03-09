@@ -52,14 +52,32 @@ plugin.onLoad = function (params, cb) {
 	};
 
 	SocketPlugins.rainbows = {
-		rainbowify: function (socket, data, next) {
-			plugin.parseRaw(data.text, next);
+		colorPost: function (socket, data, next) {
+			if (!plugin.settings.get('postsEnabled')) return next(new Error('Not allowed to post colors.'), {text: plugin.remove(data.text)});
+			if (!plugin.settings.get('postsModsOnly')) return next(null, {text: plugin.parse(data.text)});
+
+			hasPerms(data.uid, data.cid, function (err, hasPerms) {
+				next(hasPerms ? null : new Error('Not allowed to post colors.'), hasPerms ? plugin.parse(data.text) : plugin.remove(data.text));
+			});
 		},
-		canPost: function (socket, data, next) {
-			console.log(data);
-			next();
+		colorTopic: function (socket, data, next) {
+			if (!plugin.settings.get('topicsEnabled')) return next(new Error('Not allowed use colors in topic titles.'), {text: plugin.remove(data.text)});
+			if (!plugin.settings.get('topicsModsOnly')) return next(null, {text: plugin.parse(data.text)});
+
+			hasPerms(data.uid, data.cid, function (err, hasPerms) {
+				next(hasPerms ? null : new Error('Not allowed use colors in topic titles.'), hasPerms ? {text: plugin.parse(data.text)} : {text: plugin.remove(data.text)});
+			});
 		}
 	};
+
+	function hasPerms(uid, cid, cb) {
+		async.parallel({
+			isAdminOrGlobalMod : async.apply(user.isAdminOrGlobalMod, uid),
+			isModerator        : async.apply(user.isModerator, uid, cid)
+		}, function(err, results) {
+			cb(err, results ? (results.isAdminOrGlobalMod || results.isModerator) : false);
+		});
+	}
 
 	function loadSettings() {
 		var themes = {};
@@ -121,22 +139,21 @@ plugin.adminHeader = function (custom_header, cb) {
 
 plugin.parseRaw = function (content, cb) {
 	if (plugin.settings.get('postsEnabled')) {
-		plugin.parse(content, cb);
+		cb(null, plugin.parse(content));
 	}else{
-		plugin.remove(content, cb);
+		cb(null, plugin.remove(content));
 	}
 };
 
-plugin.parse = function (data, cb) {
-	if (!data) return cb(null, data);
+plugin.parse = function (text) {
+	if (!text) return text;
 
 	var pattern = /-=[^\0]+?=-/g;
+	var matches = text.match(pattern) || [];
 
-	var matches = data.match(pattern) || [];
+	if (matches.length === 0) return text;
 
-	if (matches.length === 0) return cb(null, data);
-
-	async.each(matches, function (match, cb) {
+	matches.forEach(function (match) {
 
 		var sliced = match.slice(2, match.length-2),
 			trimmed = sliced,
@@ -167,7 +184,7 @@ plugin.parse = function (data, cb) {
 
 		characters = sliced.replace(/<[^>]*>/gm, '').replace(/(\r\n|\n|\r| |\t)*/gm,'').length;
 
-		if (!characters) return cb(null, data);
+		if (!characters) return;
 
 		if (options.colors.length > 0) {
 			if (options.colors.length === 1) options.colors[1] = options.colors[0];
@@ -190,8 +207,8 @@ plugin.parse = function (data, cb) {
 		try {
 			rainbow.setSpectrumByArray(options.colors);
 		} catch (e) {
-			data = data.replace(match, sliced);
-			return cb(null, data);
+			text = text.replace(match, sliced);
+			return;
 		}
 
 		rainbow.setNumberRange(0, options.range - 1);
@@ -225,44 +242,46 @@ plugin.parse = function (data, cb) {
 
 		parsed = '<span class="rainbowified">' + parsed + '</span>';
 
-		data = data.replace(match, parsed);
-
-		cb();
-	}, function(err){
-		cb(null, data);
+		text = text.replace(match, parsed);
 	});
+
+	return text;
 };
 
-plugin.remove = function (content, cb) {
+plugin.remove = function (content) {
+	console.log('removing: ' + content);
 	var arr;
 	while ((arr = regex.exec(content)) !== null) {
 		content = content.replace(arr[0], arr[2]);
 	}
-
-	cb(null, content);
+	console.log('got: ' + content);
+	return content;
 };
 
 plugin.parseSignature = function (data, cb) {
-	plugin.parseRaw(data.userData.signature, function (err, signature) {
-		data.userData.signature = signature;
-		cb(err, data);
-	});
+	if (plugin.settings.get('postsEnabled')) {
+		data.userData.signature = plugin.parse(data.userData.signature);
+	}else{
+		data.userData.signature = plugin.remove(data.userData.signature);
+	}
+	cb(null, data);
 };
 
 plugin.parsePost = function (data, cb) {
-	plugin.parseRaw(data.postData.content, function (err, content) {
-		data.postData.content = content;
-		cb(err, data);
-	});
+	if (plugin.settings.get('postsEnabled')) {
+		data.postData.content = plugin.parse(data.postData.content);
+	}else{
+		data.postData.content = plugin.remove(data.postData.content);
+	}
+	cb(null, data);
 };
 
 plugin.parseTopic = function (data, cb) {
 	var parse = plugin.settings.get('topicsEnabled') ? plugin.parse : plugin.remove;
 
-	parse(data.topic.title, function (err, title) {
-		data.topic.title = title;
-		cb(null, data);
-	});
+	data.topic.title = parse(data.topic.title);
+
+	cb(null, data);
 };
 
 plugin.parseTopics = function (data, cb) {
@@ -270,10 +289,8 @@ plugin.parseTopics = function (data, cb) {
 	var parse = plugin.settings.get('topicsEnabled') ? plugin.parse : plugin.remove;
 
 	async.map(topics, function (topic, next) {
-		parse(topic.title, function (err, title) {
-			topic.title = title;
-			next(null, topic);
-		});
+		topic.title = parse(topic.title);
+		next(null, topic);
 	}, function (err, topics) {
 		cb(null, data);
 	});
