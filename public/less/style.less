@@ -1,22 +1,38 @@
-.acp-panel-primary {
-    border: 3px @brand-primary solid;
-    background-color: white;
-
-	.panel-heading {
-		border-bottom: 3px @brand-primary solid;
-
-		.panel-title {
-			font-size: 34px;
-
-			img {
-				margin-top: -10px;
-				margin-right: 5px;
-			}
-		}
+// ACP
+#rainbows {
+	.rainbows-save {
+		position: fixed;
+		width: 175px;
+		height: 50px;
+		border-radius: 25px;
+		bottom: 20px;
+		right: 20px;
 	}
+	.panel-heading.btn {
+		display: block;
+		text-align: left;
+	}
+}
 
-	h3:first-child {
-		margin-top: 0;
+[data-parent="_themes"] {
+	display: inline-block;
+	width: 85%;
+
+	input {
+		width: 19%;
+		margin-right: 1%;
+	}
+	input+input {
+		width: 79%;
+	}
+}
+
+.theme-label {
+	display: inline-block;
+	font-weight: 800;
+	font-size: 1.1em;
+	&.one {
+		width: 16.5%;
 	}
 }
 
