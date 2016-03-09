@@ -9,6 +9,7 @@ var async         = require('async')
 
 var NodeBB        = module.parent
 var meta          = NodeBB.require('./meta')
+var user          = NodeBB.require('./user')
 var Settings      = NodeBB.require('./settings')
 var SocketAdmin   = NodeBB.require('./socket.io/admin')
 var SocketPlugins = NodeBB.require('./socket.io/plugins')
@@ -30,7 +31,7 @@ var defaultSettings = {
 	lumModifier : 40
 }
 
-plugin.onLoad = function (params, callback) {
+plugin.onLoad = function (params, cb) {
 	var router     = params.router;
 	var middleware = params.middleware;
 
@@ -62,7 +63,7 @@ plugin.onLoad = function (params, callback) {
 		console.dir(plugin.settings.get());
 	}
 
-	callback();
+	cb();
 }
 
 var readOption = function (options, option) {
@@ -98,7 +99,7 @@ var readOption = function (options, option) {
 	}
 };
 
-plugin.adminHeader = function (custom_header, callback) {
+plugin.adminHeader = function (custom_header, cb) {
 	custom_header.plugins.push({
 		"route": '/plugins/rainbows',
 		"icon": '',
@@ -108,158 +109,173 @@ plugin.adminHeader = function (custom_header, callback) {
 	// http://p.yusukekamiyamane.com/
 	// CC-BY
 
-	callback(null, custom_header);
+	cb(null, custom_header);
 }
 
-plugin.parseRaw = function (data, callback) {
-	if (data) {
-
-		var pattern = /-=[^\0]+?=-/g;
-
-		var matches = data.match(pattern) || [];
-
-		if (matches.length === 0) return callback(null, data);
-
-		async.each(matches, function (match, callback) {
-
-			var sliced = match.slice(2, match.length-2),
-				trimmed = sliced,
-				characters,
-				rainbow = new RainbowVis(),
-				html = {},
-				options = {
-					range: 0,
-					colors: [],
-					bgcolor: '',
-					mirror: false
-				};
-
-			var postOptions = sliced.match(/^\([^\)]*\)/);
-
-			if (postOptions) {
-				sliced = sliced.replace(postOptions[0], '');
-				trimmed = sliced;
-
-				postOptions = postOptions[0].slice(1, postOptions[0].length-1).replace(/ */g, '').split(',');
-
-				postOptions.forEach(function (option) {
-					if (option !== '') {
-						readOption(options, option);
-					}
-				});
-			}
-
-			characters = sliced.replace(/<[^>]*>/gm, '').replace(/(\r\n|\n|\r| |\t)*/gm,'').length;
-
-			if (!characters) return callback(null, data);
-
-			if (options.colors.length > 0) {
-				if (options.colors.length === 1) options.colors[1] = options.colors[0];
-
-				if (options.range === 0) {
-					options.range = characters > 1 ? characters : 2;
-				}else{
-					options.range = options.range > options.colors.length ? options.range : options.colors.length;
-				}
-			}else{
-				options.colors = [ 'red', 'orange', 'gold', 'lime', 'deepskyblue', 'blue', 'blueviolet', 'magenta'];
-
-				if (options.range === 0) {
-					options.range = characters > 8 ? characters : 8;
-				}else{
-					options.range = options.range > 8 ? options.range : 8;
-				}
-			}
-
-			try {
-				rainbow.setSpectrumByArray(options.colors);
-			} catch (e) {
-				data = data.replace(match, sliced);
-				return callback(null, data);
-			}
-
-			rainbow.setNumberRange(0, options.range - 1);
-
-			var parsed = "",
-				offset = 0;
-
-			while (trimmed.length) {
-				var c = trimmed.charAt(0);
-
-				if (c.match(/(\n|\r)/)) {
-					parsed += '<br>';
-					trimmed = trimmed.substr(1);
-				}else if (c.match(/ /)) {
-					parsed += ' ';
-					trimmed = trimmed.substr(1);
-				}else if (trimmed.match(/^<\/p><p>/)) {
-					parsed += '<br /><br />';
-					trimmed = trimmed.replace(/^<\/p><p>/, '');
-				}else if (trimmed.match(/^<[^>]*>/)) {
-					parsed += trimmed.match(/^<[^>]*>/)[0];
-					trimmed = trimmed.replace(/^<[^>]*>/, '');
-				}else{
-					parsed += '<span style="color:#' + rainbow.colourAt(offset % options.range) + '">' + trimmed.charAt(0) + '</span>';
-					trimmed = trimmed.substr(1);
-					offset++;
-				}
-			}
-
-			if (options.bgcolor) parsed = '<span style="background-color:' + options.bgcolor + '">' + parsed + '</span>';
-
-			parsed = '<span class="rainbowified">' + parsed + '</span>';
-
-			data = data.replace(match, parsed);
-
-			callback();
-		}, function(err){
-			callback(null, data);
-		});
+plugin.parseRaw = function (data, cb) {
+	if (plugin.settings.get('postsEnabled')) {
+		parse(data, cb);
 	}else{
-		callback(null, data);
+		cb(null, data);
 	}
 };
 
-plugin.parseSignature = function (data, callback) {
+plugin.parse = function (data, cb) {
+	if (!data) return cb(null, data);
+
+	var pattern = /-=[^\0]+?=-/g;
+
+	var matches = data.match(pattern) || [];
+
+	if (matches.length === 0) return cb(null, data);
+
+	async.each(matches, function (match, cb) {
+
+		var sliced = match.slice(2, match.length-2),
+			trimmed = sliced,
+			characters,
+			rainbow = new RainbowVis(),
+			html = {},
+			options = {
+				range: 0,
+				colors: [],
+				bgcolor: '',
+				mirror: false
+			};
+
+		var postOptions = sliced.match(/^\([^\)]*\)/);
+
+		if (postOptions) {
+			sliced = sliced.replace(postOptions[0], '');
+			trimmed = sliced;
+
+			postOptions = postOptions[0].slice(1, postOptions[0].length-1).replace(/ */g, '').split(',');
+
+			postOptions.forEach(function (option) {
+				if (option !== '') {
+					readOption(options, option);
+				}
+			});
+		}
+
+		characters = sliced.replace(/<[^>]*>/gm, '').replace(/(\r\n|\n|\r| |\t)*/gm,'').length;
+
+		if (!characters) return cb(null, data);
+
+		if (options.colors.length > 0) {
+			if (options.colors.length === 1) options.colors[1] = options.colors[0];
+
+			if (options.range === 0) {
+				options.range = characters > 1 ? characters : 2;
+			}else{
+				options.range = options.range > options.colors.length ? options.range : options.colors.length;
+			}
+		}else{
+			options.colors = [ 'red', 'orange', 'gold', 'lime', 'deepskyblue', 'blue', 'blueviolet', 'magenta'];
+
+			if (options.range === 0) {
+				options.range = characters > 8 ? characters : 8;
+			}else{
+				options.range = options.range > 8 ? options.range : 8;
+			}
+		}
+
+		try {
+			rainbow.setSpectrumByArray(options.colors);
+		} catch (e) {
+			data = data.replace(match, sliced);
+			return cb(null, data);
+		}
+
+		rainbow.setNumberRange(0, options.range - 1);
+
+		var parsed = "",
+			offset = 0;
+
+		while (trimmed.length) {
+			var c = trimmed.charAt(0);
+
+			if (c.match(/(\n|\r)/)) {
+				parsed += '<br>';
+				trimmed = trimmed.substr(1);
+			}else if (c.match(/ /)) {
+				parsed += ' ';
+				trimmed = trimmed.substr(1);
+			}else if (trimmed.match(/^<\/p><p>/)) {
+				parsed += '<br /><br />';
+				trimmed = trimmed.replace(/^<\/p><p>/, '');
+			}else if (trimmed.match(/^<[^>]*>/)) {
+				parsed += trimmed.match(/^<[^>]*>/)[0];
+				trimmed = trimmed.replace(/^<[^>]*>/, '');
+			}else{
+				parsed += '<span style="color:#' + rainbow.colourAt(offset % options.range) + '">' + trimmed.charAt(0) + '</span>';
+				trimmed = trimmed.substr(1);
+				offset++;
+			}
+		}
+
+		if (options.bgcolor) parsed = '<span style="background-color:' + options.bgcolor + '">' + parsed + '</span>';
+
+		parsed = '<span class="rainbowified">' + parsed + '</span>';
+
+		data = data.replace(match, parsed);
+
+		cb();
+	}, function(err){
+		cb(null, data);
+	});
+};
+
+plugin.remove = function () {
+	
+};
+
+plugin.parseSignature = function (data, cb) {
 	plugin.parseRaw(data.userData.signature, function (err, signature) {
 		data.userData.signature = signature;
-		callback(err, data);
+		cb(err, data);
 	});
 };
 
-plugin.parsePost = function (data, callback) {
+plugin.parsePost = function (data, cb) {
 	plugin.parseRaw(data.postData.content, function (err, content) {
 		data.postData.content = content;
-		callback(err, data);
+		cb(err, data);
 	});
 };
 
-plugin.parseTopic = function (data, callback) {
+plugin.parseTopic = function (data, cb) {
 	plugin.parseRaw(data.topic.title, function (err, title) {
 		data.topic.title = title;
 		console.dir(title);
-		callback(err, data);
+		cb(err, data);
 	});
 };
 
-plugin.parseTopics = function (data, callback) {
-	var topics = [];
-	async.eachSeries(data.topics, function (topic, next) {
-		plugin.parseRaw(topic.title, function (err, title) {
-			topic.title = title;
-			topics.push(topic);
-			next();
+plugin.parseTopics = function (data, cb) {
+	if (plugin.settings.get('topicsEnabled')) {
+		var topics = data.topics;
+		async.map(topics, function (topic, next) {
+			plugin.parse(topic.title, function (err, title) {
+				topic.title = title;
+				next(null, topic);
+			});
+		}, function () {
+			cb(null, data);
 		});
-	}, function () {
-		data.topics = topics;
-		callback(null, data);
-	});
+	}else{
+		cb(null, data);
+	}
 };
 
 plugin.configGet = function (data, next) {
-	data.rainbowifyTags = parseInt(plugin.settings.get('rainbowifyTags'), 10) === 1;
-	data.hueModifier = parseInt(plugin.settings.get('hueModifier'), 10) || 0;
-	data.lumModifier = parseInt(plugin.settings.get('lumModifier'), 10) || 40;
+	data.rainbows = {};
+	data.rainbows.postsEnabled  = parseInt(plugin.settings.get('postsEnabled'),  10) === 1;
+	data.rainbows.postsModOnly  = parseInt(plugin.settings.get('postsModOnly'),  10) === 1;
+	data.rainbows.tagsEnabled   = parseInt(plugin.settings.get('tagsEnabled'),   10) === 1;
+	data.rainbows.topicsEnabled = parseInt(plugin.settings.get('topicsEnabled'), 10) === 1;
+	data.rainbows.hueModifier   = parseInt(plugin.settings.get('hueModifier'),   10) || 0;
+	data.rainbows.lumModifier   = parseInt(plugin.settings.get('lumModifier'),   10) || 40;
 
 	next(null, data);
 };

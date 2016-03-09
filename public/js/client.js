@@ -139,7 +139,7 @@ $(document).ready(function(){
 $(window).on('action:ajaxify.contentLoaded', function (e, data) {
 	if (data.tpl.slice(0, 5) === 'admin') return;
 
-	if (config.rainbowifyTags) {
+	if (config.rainbows.tagsEnabled) {
 		var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 
 		$('[data-tag], .tag').each(function () {
@@ -157,9 +157,9 @@ $(window).on('action:ajaxify.contentLoaded', function (e, data) {
 			x = x === -1 ? 12 : x;
 			y = y === -1 ? 12 : y;
 			z = z === -1 ? 12 : z;
-			var hue = (x * 14 + z * 28 + config.hueModifier) % 360;
+			var hue = (x * 14 + z * 28 + config.rainbows.hueModifier) % 360;
 			var sat = 100 - z;
-			var lum = 95 - y / 6 - (config.lumModifier > 80 || config.lumModifier < 0 ? 40 : config.lumModifier);
+			var lum = 95 - y / 6 - (config.rainbows.lumModifier > 80 || config.rainbows.lumModifier < 0 ? 40 : config.rainbows.lumModifier);
 			var color = 'hsl('+hue+','+sat+'%,'+lum+'%)';
 			$tag.css('color', color);
 		});
@@ -167,7 +167,7 @@ $(window).on('action:ajaxify.contentLoaded', function (e, data) {
 });
 
 function getRandomColorStyle() {
-	var	hue = Math.round(Math.random() * 360) + config.hueModifier
+	var	hue = Math.round(Math.random() * 360) + config.rainbows.hueModifier
 	var	sat = Math.round(90 - Math.random() * 20)
 	var	lum = Math.round(90 - Math.random() * 20)
 
@@ -224,7 +224,7 @@ function rainbowsPreview() {
 	});
 }
 
-if (config.rainbowifyNavbar) {
+if (config.rainbows.navbarEnabled) {
 	$(window).on('action:ajaxify.end', function(event, data) {
 		$('[component="navbar"]').css('background-color', getRandomColorStyle());
 	});
