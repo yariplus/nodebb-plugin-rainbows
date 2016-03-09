@@ -31,6 +31,9 @@ var defaultSettings = {
 	lumModifier : 40
 }
 
+// Best. Regex. Ever.
+var regex = /-=((?:\([^\)]*\))?)([^\0]*?)=-/g;
+
 plugin.onLoad = function (params, cb) {
 	var router     = params.router;
 	var middleware = params.middleware;
@@ -51,6 +54,10 @@ plugin.onLoad = function (params, cb) {
 	SocketPlugins.rainbows = {
 		rainbowify: function (socket, data, next) {
 			plugin.parseRaw(data.text, next);
+		},
+		canPost: function (socket, data, next) {
+			console.log(data);
+			next();
 		}
 	};
 
@@ -112,11 +119,11 @@ plugin.adminHeader = function (custom_header, cb) {
 	cb(null, custom_header);
 }
 
-plugin.parseRaw = function (data, cb) {
+plugin.parseRaw = function (content, cb) {
 	if (plugin.settings.get('postsEnabled')) {
-		parse(data, cb);
+		plugin.parse(content, cb);
 	}else{
-		cb(null, data);
+		plugin.remove(content, cb);
 	}
 };
 
@@ -226,8 +233,13 @@ plugin.parse = function (data, cb) {
 	});
 };
 
-plugin.remove = function () {
-	
+plugin.remove = function (content, cb) {
+	var arr;
+	while ((arr = regex.exec(content)) !== null) {
+		content = content.replace(arr[0], arr[2]);
+	}
+
+	cb(null, content);
 };
 
 plugin.parseSignature = function (data, cb) {
@@ -245,27 +257,26 @@ plugin.parsePost = function (data, cb) {
 };
 
 plugin.parseTopic = function (data, cb) {
-	plugin.parseRaw(data.topic.title, function (err, title) {
+	var parse = plugin.settings.get('topicsEnabled') ? plugin.parse : plugin.remove;
+
+	parse(data.topic.title, function (err, title) {
 		data.topic.title = title;
-		console.dir(title);
-		cb(err, data);
+		cb(null, data);
 	});
 };
 
 plugin.parseTopics = function (data, cb) {
-	if (plugin.settings.get('topicsEnabled')) {
-		var topics = data.topics;
-		async.map(topics, function (topic, next) {
-			plugin.parse(topic.title, function (err, title) {
-				topic.title = title;
-				next(null, topic);
-			});
-		}, function () {
-			cb(null, data);
+	var topics = data.topics;
+	var parse = plugin.settings.get('topicsEnabled') ? plugin.parse : plugin.remove;
+
+	async.map(topics, function (topic, next) {
+		parse(topic.title, function (err, title) {
+			topic.title = title;
+			next(null, topic);
 		});
-	}else{
+	}, function (err, topics) {
 		cb(null, data);
-	}
+	});
 };
 
 plugin.configGet = function (data, next) {
