@@ -12,10 +12,14 @@
 		{ "hook": "filter:parse.raw",          "method": "parseRaw" },
 		{ "hook": "filter:parse.post",         "method": "parsePost" },
 		{ "hook": "filter:parse.signature",    "method": "parseSignature" },
-		{ "hook": "filter:topic.get",          "method": "parseTopic" },
-		{ "hook": "filter:topics.get",         "method": "parseTopics" },
+		{ "hook": "filter:topic.get",          "method": "getTopic" },
+		{ "hook": "filter:category.build",     "method": "parseController" },
+		{ "hook": "filter:recent.build",       "method": "parseController" },
+		{ "hook": "filter:popular.build",      "method": "parseController" },
+		{ "hook": "filter:unread.build",       "method": "parseController" },
 		{ "hook": "filter:admin.header.build", "method": "adminHeader" },
-		{ "hook": "filter:config.get",         "method": "configGet" }
+		{ "hook": "filter:config.get",         "method": "configGet" },
+		{ "hook": "filter:middleware.renderHeader", "method": "renderHeader" }
 	],
 	"scripts": [
 		"public/js/client.js"

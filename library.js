@@ -10,6 +10,7 @@ var async         = require('async')
 var NodeBB        = module.parent
 var meta          = NodeBB.require('./meta')
 var user          = NodeBB.require('./user')
+var topics        = NodeBB.require('./topics')
 var Settings      = NodeBB.require('./settings')
 var SocketAdmin   = NodeBB.require('./socket.io/admin')
 var SocketPlugins = NodeBB.require('./socket.io/plugins')
@@ -53,31 +54,17 @@ plugin.onLoad = function (params, cb) {
 
 	SocketPlugins.rainbows = {
 		colorPost: function (socket, data, next) {
-			if (!plugin.settings.get('postsEnabled')) return next(new Error('Not allowed to post colors.'), {text: plugin.remove(data.text)});
-			if (!plugin.settings.get('postsModsOnly')) return next(null, {text: plugin.parse(data.text)});
-
-			hasPerms(data.uid, data.cid, function (err, hasPerms) {
-				next(hasPerms ? null : new Error('Not allowed to post colors.'), hasPerms ? plugin.parse(data.text) : plugin.remove(data.text));
+			topics.getTopicField(data.tid, 'cid', function(err, cid) {
+				parsePost(socket.uid, cid, data.content, next);
 			});
 		},
 		colorTopic: function (socket, data, next) {
-			if (!plugin.settings.get('topicsEnabled')) return next(new Error('Not allowed use colors in topic titles.'), {text: plugin.remove(data.text)});
-			if (!plugin.settings.get('topicsModsOnly')) return next(null, {text: plugin.parse(data.text)});
-
-			hasPerms(data.uid, data.cid, function (err, hasPerms) {
-				next(hasPerms ? null : new Error('Not allowed use colors in topic titles.'), hasPerms ? {text: plugin.parse(data.text)} : {text: plugin.remove(data.text)});
-			});
+			parseTopicTitle(data.uid, data.cid, data.title, next);
+		},
+		colorTopics: function (socket, data, next) {
+			parseTopics(data.topics, next);
 		}
 	};
-
-	function hasPerms(uid, cid, cb) {
-		async.parallel({
-			isAdminOrGlobalMod : async.apply(user.isAdminOrGlobalMod, uid),
-			isModerator        : async.apply(user.isModerator, uid, cid)
-		}, function(err, results) {
-			cb(err, results ? (results.isAdminOrGlobalMod || results.isModerator) : false);
-		});
-	}
 
 	function loadSettings() {
 		var themes = {};
@@ -89,6 +76,15 @@ plugin.onLoad = function (params, cb) {
 	}
 
 	cb();
+}
+
+function hasPerms(uid, cid, cb) {
+	async.parallel({
+		isAdminOrGlobalMod : async.apply(user.isAdminOrGlobalMod, uid),
+		isModerator        : async.apply(user.isModerator, uid, cid)
+	}, function(err, results) {
+		cb(err, results ? (results.isAdminOrGlobalMod || results.isModerator) : false);
+	});
 }
 
 var readOption = function (options, option) {
@@ -137,16 +133,10 @@ plugin.adminHeader = function (custom_header, cb) {
 	cb(null, custom_header);
 }
 
-plugin.parseRaw = function (content, cb) {
-	if (plugin.settings.get('postsEnabled')) {
-		cb(null, plugin.parse(content));
-	}else{
-		cb(null, plugin.remove(content));
-	}
-};
-
 plugin.parse = function (text) {
 	if (!text) return text;
+
+	//console.log('adding color to: ' + text);
 
 	var pattern = /-=[^\0]+?=-/g;
 	var matches = text.match(pattern) || [];
@@ -249,13 +239,16 @@ plugin.parse = function (text) {
 };
 
 plugin.remove = function (content) {
-	console.log('removing: ' + content);
+	//console.log('removing color from: ' + content);
 	var arr;
 	while ((arr = regex.exec(content)) !== null) {
 		content = content.replace(arr[0], arr[2]);
 	}
-	console.log('got: ' + content);
 	return content;
+};
+
+plugin.parseRaw = function (content, cb) {
+	cb(null, plugin.parse(content));
 };
 
 plugin.parseSignature = function (data, cb) {
@@ -268,33 +261,69 @@ plugin.parseSignature = function (data, cb) {
 };
 
 plugin.parsePost = function (data, cb) {
-	if (plugin.settings.get('postsEnabled')) {
-		data.postData.content = plugin.parse(data.postData.content);
-	}else{
-		data.postData.content = plugin.remove(data.postData.content);
-	}
-	cb(null, data);
+	topics.getTopicField(data.tid, 'cid', function(err, cid) {
+		parsePost(data.postData.uid, cid, data.postData.content, function (err, content) {
+			data.postData.content = content;
+			cb(null, data);
+		});
+	});
 };
+
+function parsePost(uid, cid, content, cb) {
+	if (!plugin.settings.get('postsEnabled')) return cb(new Error('Not allowed to post colors.'), plugin.remove(content));
+	if (!plugin.settings.get('postsModsOnly')) return cb(null, plugin.parse(content));
+
+	hasPerms(uid, cid, function (err, hasPerms) {
+		cb(hasPerms ? null : new Error('Not allowed post colors.'), hasPerms ? plugin.parse(content) : plugin.remove(content));
+	});
+}
 
 plugin.parseTopic = function (data, cb) {
-	var parse = plugin.settings.get('topicsEnabled') ? plugin.parse : plugin.remove;
-
-	data.topic.title = parse(data.topic.title);
-
-	cb(null, data);
-};
-
-plugin.parseTopics = function (data, cb) {
-	var topics = data.topics;
-	var parse = plugin.settings.get('topicsEnabled') ? plugin.parse : plugin.remove;
-
-	async.map(topics, function (topic, next) {
-		topic.title = parse(topic.title);
-		next(null, topic);
-	}, function (err, topics) {
+	return cb(null, data);
+	parseTopicTitle(data.topic.uid, data.topic.cid, data.topic.title, function (err, title) {
+		data.topic.title = title;
 		cb(null, data);
 	});
 };
+
+// Pass back an array of parsed topics only.
+function parseTopics(topicsData, cb) {
+	if (!plugin.settings.get('topicsEnabled')) return cb();
+
+	async.map(topicsData, function (topic, next) {
+		topics.getTopicFields(topic.tid, ['cid', 'uid'], function (err, fields) {
+			parseTopicTitle(fields.uid, fields.cid, topic.title, function (err, title) {
+				topic.uid = fields.uid;
+				topic.cid = fields.cid;
+				topic.title = title;
+				next(null, topic);
+			});
+		});
+	}, function (err, topicsData) {
+		cb(null, {topics: topicsData});
+	});
+};
+function parseTopicsAll(topicsData, cb) {
+	if (!plugin.settings.get('topicsEnabled')) return cb();
+
+	async.map(topicsData, function (topic, next) {
+		topics.getTopicFields(topic.tid, ['cid', 'uid'], function (err, fields) {
+			parseTopicTitle(fields.uid, fields.cid, topic.title, function (err, title) {
+				topic.title = title;
+				next(null, topic);
+			});
+		});
+	}, cb);
+};
+
+function parseTopicTitle(uid, cid, title, cb) {
+	if (!plugin.settings.get('topicsEnabled')) return cb(new Error('Not allowed to use colors in topic titles.'), plugin.remove(title));
+	if (!plugin.settings.get('topicsModsOnly')) return cb(null, plugin.parse(title));
+
+	hasPerms(uid, cid, function (err, hasPerms) {
+		cb(hasPerms ? null : new Error('Not allowed to use colors in topic titles.'), hasPerms ? plugin.parse(title) : plugin.remove(title));
+	});
+}
 
 plugin.configGet = function (data, next) {
 	data.rainbows = {};
@@ -306,4 +335,27 @@ plugin.configGet = function (data, next) {
 	data.rainbows.lumModifier   = parseInt(plugin.settings.get('lumModifier'),   10) || 40;
 
 	next(null, data);
+};
+
+plugin.renderHeader = function (data, cb) {
+	data.templateValues.browserTitle = plugin.remove(data.templateValues.browserTitle);
+	cb(null, data)
+};
+
+// Doesn't work.
+plugin.getTopic = function (data, cb) {
+	//data.topic.title = plugin.remove(data.topic.title);
+	cb(null, data);
+};
+
+plugin.parseController = function (data, cb) {
+	if (!(data && data.templateData && data.templateData.topics)) return cb(null, data);
+	async.each(data.templateData.topics, function (topic, next) {
+		parseTopicTitle(topic.uid, topic.cid, topic.title, function (err, title) {
+			topic.title = title;
+			next();
+		});
+	}, function(){
+		cb(null, data);
+	});
 };
