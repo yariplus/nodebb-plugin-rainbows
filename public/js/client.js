@@ -226,7 +226,6 @@ if (config.rainbows.postsEnabled) {
 	}
 }
 
-
 if (config.rainbows.navbarEnabled) {
 	$(window).on('action:ajaxify.end', function(event, data) {
 		$('[component="navbar"]').css('background-color', getRandomColorStyle());
@@ -234,63 +233,60 @@ if (config.rainbows.navbarEnabled) {
 }
 
 if (config.rainbows.topicsEnabled) {
-	
-/*
+
 	$(window).on('action:posts.edited', function (ev, data) {
 		if (data.topic.oldTitle) {
-			socket.emit('plugins.rainbows.colorTopic', {uid: data.topic.uid, cid: data.topic.cid, title: data.topic.title}, function (err, title) {
+			var title = $('<i>').append(data.topic.title).text();
+			socket.emit('plugins.rainbows.colorTopic', {uid: data.topic.uid, cid: data.topic.cid, title: title}, function (err, title) {
 				$('[component="topic/title"]').html(title);
+				$('[component="breadcrumb/current"]').html(title);
 			});
 		}
 	});
 
-	
-
 	$(window).on('action:categories.new_topic.loaded', function () {
-		console.log("!!!!!!!!!!!! action:categories.new_topic.loaded");
+		console.log('action:categories.new_topic.loaded');
 		console.log(ajaxify.data);
 	});
 
-	*/
 	$(window).on('action:topic.loaded', function () {
-		socket.emit('plugins.rainbows.colorTopic', {uid: ajaxify.data.uid, cid: ajaxify.data.cid, title: ajaxify.data.title}, function (err, title) {
+		var title = $('<i>').append(ajaxify.data.title).text();
+		socket.emit('plugins.rainbows.colorTopic', {uid: ajaxify.data.uid, cid: ajaxify.data.cid, title: title}, function (err, title) {
 			$('[component="topic/title"]').html(title);
-			$('span[itemprop="title"]').last().html(title);
+			$('[component="breadcrumb/current"]').html(title);
 		});
 	});
 
 	$(window).on('action:topics.loaded', function (ev, data) {
+		data.topics.forEach(function(topic){
+			topic.title = $('<i>').append(ajaxify.data.title).text();
+		});
 		socket.emit('plugins.rainbows.colorTopics', data, function (err, result) {
 			result.topics.forEach(function (topic) {
 				$('[data-tid="'+topic.tid+'"] [itemprop="url"]').html(topic.title);
 			});
 		});
 	});
-
 }
 
-$(window).on('action:ajaxify.end', function (ev, data) {
-	/*
-	if (data.tpl_url === 'category') {
-		var topics = $('[data-tid] [itemprop="url"]').map(function(){
-			return {tid: $(this).closest('[data-tid]').attr('data-tid'), title: this.innerHTML};
-		});
-		socket.emit('plugins.rainbows.colorTopics', {topics: topics}, function (err, topics) {
-			console.log(topics);
-			topics.forEach(function (topic) {
-				$('[data-tid="'+topic.tid+'"] [itemprop="url"]').html(topic.title);
-			});
-		});
-	}else if(data.tpl_url === 'topic'){
-		
-	}
-	*/
-});
-
+// Recent Cards
 $(window).on('action:ajaxify.end', function () {
 	var regex = /-=((?:\([^\)]*\))?)([^\0]*?)=-/g;
-	var arr;
-	while ((arr = regex.exec(document.title)) !== null) {
-		document.title = document.title.replace(arr[0], arr[2]);
-	}
+	var parse = config.rainbows.topicsEnabled && !config.rainbows.topicsModsOnly;
+	$('.category-info > a > h4').each(function(){
+		var that = $(this);
+		var text = $(this).text();
+		var html = $(this).html();
+		if (text.match(regex)) {
+			if (parse) {
+				socket.emit('plugins.rainbows.colorTopic', {uid: -2, title: html}, function (err, html) {
+					that.html(html);
+				});
+			}else{
+				socket.emit('plugins.rainbows.colorTopic', {uid: -1, title: text}, function (err, text) {
+					that.text(text);
+				});
+			}
+		}
+	});
 });

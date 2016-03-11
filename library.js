@@ -11,7 +11,9 @@ var NodeBB        = module.parent
 var meta          = NodeBB.require('./meta')
 var user          = NodeBB.require('./user')
 var topics        = NodeBB.require('./topics')
+var plugins       = NodeBB.require('./plugins')
 var Settings      = NodeBB.require('./settings')
+var emitter       = NodeBB.require('./emitter')
 var SocketAdmin   = NodeBB.require('./socket.io/admin')
 var SocketPlugins = NodeBB.require('./socket.io/plugins')
 
@@ -34,6 +36,21 @@ var defaultSettings = {
 
 // Best. Regex. Ever.
 var regex = /-=((?:\([^\)]*\))?)([^\0]*?)=-/g;
+
+// Remove color from all widgets for now.
+emitter.on('nodebb:ready', function(){
+	var hooked = {};
+	Object.keys(plugins.loadedHooks).filter(function(hook){
+        return hooked.hasOwnProperty(hook) ? false : (hooked[hook] = true);
+	}).forEach(function(hook){
+		if (hook.match('filter:widget.render:')) {
+			plugins.loadedHooks[hook].push({
+				id: 'nodebb-plugin-rainbows',
+				method: plugin.parseController
+			});
+		}
+	});
+});
 
 plugin.onLoad = function (params, cb) {
 	var router     = params.router;
@@ -59,6 +76,8 @@ plugin.onLoad = function (params, cb) {
 			});
 		},
 		colorTopic: function (socket, data, next) {
+			if (data.uid === -1) next(null, plugin.remove(data.title));
+			if (data.uid === -2) next(null, plugin.parse(data.title));
 			parseTopicTitle(data.uid, data.cid, data.title, next);
 		},
 		colorTopics: function (socket, data, next) {
@@ -239,7 +258,6 @@ plugin.parse = function (text) {
 };
 
 plugin.remove = function (content) {
-	//console.log('removing color from: ' + content);
 	var arr;
 	while ((arr = regex.exec(content)) !== null) {
 		content = content.replace(arr[0], arr[2]);
@@ -279,9 +297,8 @@ function parsePost(uid, cid, content, cb) {
 }
 
 plugin.parseTopic = function (data, cb) {
-	return cb(null, data);
-	parseTopicTitle(data.topic.uid, data.topic.cid, data.topic.title, function (err, title) {
-		data.topic.title = title;
+	parseTopicTitle(data.templateData.uid, data.templateData.cid, data.templateData.title, function (err, title) {
+		data.templateData.title = title;
 		cb(null, data);
 	});
 };
@@ -327,19 +344,20 @@ function parseTopicTitle(uid, cid, title, cb) {
 
 plugin.configGet = function (data, next) {
 	data.rainbows = {};
-	data.rainbows.postsEnabled  = parseInt(plugin.settings.get('postsEnabled'),  10) === 1;
-	data.rainbows.postsModOnly  = parseInt(plugin.settings.get('postsModOnly'),  10) === 1;
-	data.rainbows.tagsEnabled   = parseInt(plugin.settings.get('tagsEnabled'),   10) === 1;
-	data.rainbows.topicsEnabled = parseInt(plugin.settings.get('topicsEnabled'), 10) === 1;
-	data.rainbows.hueModifier   = parseInt(plugin.settings.get('hueModifier'),   10) || 0;
-	data.rainbows.lumModifier   = parseInt(plugin.settings.get('lumModifier'),   10) || 40;
+	data.rainbows.postsEnabled   = parseInt(plugin.settings.get('postsEnabled'),   10) === 1;
+	data.rainbows.postsModOnly   = parseInt(plugin.settings.get('postsModOnly'),   10) === 1;
+	data.rainbows.tagsEnabled    = parseInt(plugin.settings.get('tagsEnabled'),    10) === 1;
+	data.rainbows.topicsEnabled  = parseInt(plugin.settings.get('topicsEnabled'),  10) === 1;
+	data.rainbows.topicsModsOnly = parseInt(plugin.settings.get('topicsModsOnly'), 10) === 1;
+	data.rainbows.hueModifier    = parseInt(plugin.settings.get('hueModifier'),    10) || 0;
+	data.rainbows.lumModifier    = parseInt(plugin.settings.get('lumModifier'),    10) || 40;
 
 	next(null, data);
 };
 
 plugin.renderHeader = function (data, cb) {
 	data.templateValues.browserTitle = plugin.remove(data.templateValues.browserTitle);
-	cb(null, data)
+	cb(null, data);
 };
 
 // Doesn't work.
@@ -349,13 +367,20 @@ plugin.getTopic = function (data, cb) {
 };
 
 plugin.parseController = function (data, cb) {
-	if (!(data && data.templateData && data.templateData.topics)) return cb(null, data);
-	async.each(data.templateData.topics, function (topic, next) {
-		parseTopicTitle(topic.uid, topic.cid, topic.title, function (err, title) {
-			topic.title = title;
-			next();
+	if (!data) return cb(null, data);
+
+	if (data.templateData && data.templateData.topics) {
+		async.each(data.templateData.topics, function (topic, next) {
+			parseTopicTitle(topic.uid, topic.cid, topic.title, function (err, title) {
+				topic.title = title;
+				next();
+			});
+		}, function(){
+			cb(null, data);
 		});
-	}, function(){
+	}else if (typeof data === 'string') {
+		cb(null, plugin.remove(data));
+	}else{
 		cb(null, data);
-	});
+	}
 };
