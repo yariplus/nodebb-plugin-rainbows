@@ -86,12 +86,11 @@ plugin.onLoad = function (params, cb) {
 	};
 
 	function loadSettings() {
-		var themes = {};
+		themes = {};
 		plugin.settings.get('themes').forEach(function(theme){
 			themes[theme.name] = theme.value;
 		});
 		plugin.settings.set('themes', themes);
-		console.dir(plugin.settings.get());
 	}
 
 	cb();
@@ -154,8 +153,6 @@ plugin.adminHeader = function (custom_header, cb) {
 
 plugin.parse = function (text) {
 	if (!text) return text;
-
-	//console.log('adding color to: ' + text);
 
 	var pattern = /-=[^\0]+?=-/g;
 	var matches = text.match(pattern) || [];

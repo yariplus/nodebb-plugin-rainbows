@@ -39,11 +39,6 @@ if (config.rainbows.postsEnabled) {
 	+ '<button class="btn" id="rainbows-remove-one"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-minus"></i>&nbsp;One&nbsp;</div></button>'
 	+ '<button class="btn" id="rainbows-remove-all"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-minus"></i>&nbsp;All&nbsp;</div></button>'
 
-	var rainbowsRedactorModal = String()
-	+ '<section id="redactor-modal-rainbows">'
-	+ rainbowModalBody
-	+ '</section>';
-
 	var rainbowsComposerModal = String()
 	+ '<div class="modal fade" tabindex="-1" id="rainbows-modal" role="dialog">'
 	+ '<div class="modal-dialog">'
@@ -63,77 +58,43 @@ if (config.rainbows.postsEnabled) {
 	+ '</div><!-- /.modal-dialog -->'
 	+ '</div>';
 
-	// Redactor
-	$(window).on('action:redactor.load', function (event, Redactor) {
-		Redactor.addButton('Rainbows', '', function (redactor) {
-			function insert(buttonName) {
-				var sel = redactor.selection.getHtml();
-				var html = '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + ( sel || 'Some Example Text') + '=-';
-
-				if (err || !result) return;
-
-				redactor.selection.restore();
-				redactor.insert.html(content);
-				redactor.code.sync();
-				redactor.modal.close();
-			}
-
-			redactor.modal.addTemplate('rainbows', rainbowsRedactorModal);
-			redactor.modal.load('rainbows', 'Rainbows', 400);
-			redactor.modal.createCancelButton();
-
-			var button = redactor.modal.createActionButton('Insert');
-			button.on('click', insert);
-
-			$('#rainbowsPreview').html(redactor.selection.getHtml() || "Some Example Text");
-			rainbowsModalEvents();
-
-			redactor.selection.save();
-			redactor.modal.show();
-		});
-	});
-
 	// Composer
-	$(document).ready(function(){
-		if (!$.Redactor) {
-			$('body').append(rainbowsComposerModal);
+  $('body').append(rainbowsComposerModal);
 
-			$('#rainbows-insert').on('click', function (e) {
-				require(['composer/controls', 'composer/preview'], function(controls, preview) {
-					var selectionStart = $('#rainbowsPreview').data('start');
-					var selectionEnd = $('#rainbowsPreview').data('end');
-					var textarea = $('#rainbowsPreview').data('el');
+  $('#rainbows-insert').on('click', function (e) {
+    require(['composer/controls', 'composer/preview'], function(controls, preview) {
+      var selectionStart = $('#rainbowsPreview').data('start');
+      var selectionEnd = $('#rainbowsPreview').data('end');
+      var textarea = $('#rainbowsPreview').data('el');
 
-					var sel = $('#rainbowsPreview').data('colors') ? $('#rainbowsPreview').data('colors').length : 0;
-					selectionStart += sel;
-					selectionEnd += sel;
+      var sel = $('#rainbowsPreview').data('colors') ? $('#rainbowsPreview').data('colors').length : 0;
+      selectionStart += sel;
+      selectionEnd += sel;
 
-					if (selectionStart === selectionEnd){
-						controls.insertIntoTextarea(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')Some Example Text=-');
-						controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 21);
-					} else {
-						controls.wrapSelectionInTextareaWith(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')', '=-');
-						controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 4);
-					}
+      if (selectionStart === selectionEnd){
+        controls.insertIntoTextarea(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')Some Example Text=-');
+        controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 21);
+      } else {
+        controls.wrapSelectionInTextareaWith(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')', '=-');
+        controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 4);
+      }
 
-					preview.render($(textarea).parent().parent().parent());
-				});
-			});
+      preview.render($(textarea).parent().parent().parent());
+    });
+  });
 
-			require(['composer'], function (composer) {
-				composer.addButton('rainbows', function(textarea, selectionStart, selectionEnd) {
-					$('#rainbows-modal').modal();
-					$('#rainbowsPreview').html($(textarea).val().slice(selectionStart, selectionEnd) || "Some Example Text");
-					$('#rainbowsPreview').data('colors', null);
-					$('#rainbowsPreview').data('el', textarea);
-					$('#rainbowsPreview').data('start', selectionStart);
-					$('#rainbowsPreview').data('end', selectionEnd);
-				});
-			});
+  require(['composer'], function (composer) {
+    composer.addButton('rainbows', function(textarea, selectionStart, selectionEnd) {
+      $('#rainbows-modal').modal();
+      $('#rainbowsPreview').html($(textarea).val().slice(selectionStart, selectionEnd) || "Some Example Text");
+      $('#rainbowsPreview').data('colors', null);
+      $('#rainbowsPreview').data('el', textarea);
+      $('#rainbowsPreview').data('start', selectionStart);
+      $('#rainbowsPreview').data('end', selectionEnd);
+    });
+  });
 
-			rainbowsModalEvents();
-		}
-	});
+  rainbowsModalEvents();
 
 	$(window).on('action:ajaxify.contentLoaded', function (e, data) {
 		if (data.tpl.slice(0, 5) === 'admin') return;
@@ -245,8 +206,6 @@ if (config.rainbows.topicsEnabled) {
 	});
 
 	$(window).on('action:categories.new_topic.loaded', function () {
-		console.log('action:categories.new_topic.loaded');
-		console.log(ajaxify.data);
 	});
 
 	$(window).on('action:topic.loaded', function () {
