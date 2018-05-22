@@ -217,9 +217,6 @@ if (config.rainbows.topicsEnabled) {
 	});
 
 	$(window).on('action:topics.loaded', function (ev, data) {
-		data.topics.forEach(function(topic){
-			topic.title = $('<i>').append(ajaxify.data.title).text();
-		});
 		socket.emit('plugins.rainbows.colorTopics', data, function (err, result) {
 			result.topics.forEach(function (topic) {
 				$('[data-tid="'+topic.tid+'"] [itemprop="url"]').html(topic.title);
