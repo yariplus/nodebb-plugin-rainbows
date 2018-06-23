@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-rainbows",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Add colors and gradients to your posts, tags, and more. Smile!",
   "main": "library.js",
   "scripts": {
