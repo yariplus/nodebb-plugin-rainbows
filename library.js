@@ -36,8 +36,8 @@ const defaultSettings = {
 // Settings object
 let settings
 
-// Best. Regex. Ever.
-let regex = /-=((?:\([^\)]*\))?)([^\0]*?)=-/g
+// Capture rainbow format
+let regex = /-=[^\0]+?=-|~\[[^\0]+?\]~(?:\([\w\d:,# ]*?\))?/gm
 
 // Remove color from all widgets for now.
 emitter.on('nodebb:ready', function () {
@@ -109,9 +109,10 @@ function hasPerms (uid, cid, cb) {
 
 function readOption (options, option) {
   option = option.split(':')
-  if (option.length > 1 && option[0] !== '' && option[1] !== '') {
+  if (option.length > 1) {
     switch (option[0]) {
       case 'range':
+      case 'length':
         options.range = Math.floor(parseInt(option[1]))
         options.range = options.range > -1 && options.range < 9000 ? options.range : 0
         break
@@ -156,40 +157,50 @@ exports.adminHeader = function (custom_header, cb) {
 function parse (text) {
   if (!text) return text
 
-  let pattern = /-=[^\0]+?=-/g
-  let matches = text.match(pattern) || []
+  let matches = text.match(regex) || []
 
   if (matches.length === 0) return text
 
-  matches.forEach(function (match) {
-    let sliced = match.slice(2, match.length - 2),
-      trimmed = sliced,
-      characters,
-      rainbow = new RainbowVis(),
-      html = {},
-      options = {
-        range: 0,
-        colors: [],
-        bgcolor: '',
-        mirror: false
-      }
+  matches.forEach(matchedString => {
+    const rainbow = new RainbowVis()
 
-    let postOptions = sliced.match(/^\([^\)]*\)/)
+    let matchedParts
+    let matchedContent
+    let matchedOptions
+    let unsafe = false
+    let characters
 
-    if (postOptions) {
-      sliced = sliced.replace(postOptions[0], '')
-      trimmed = sliced
+    let options = {
+      range: 0,
+      colors: [],
+      bgcolor: '',
+      mirror: false
+    }
 
-      postOptions = postOptions[0].slice(1, postOptions[0].length - 1).replace(/ */g, '').split(',')
+    if (matchedString.match(/^-=/)) {
+      unsafe = true
+      matchedParts = matchedString.slice(2, matchedString.length - 2)
+      matchedParts = matchedParts.match(/^(?:\(([\w\d:,# ]+?)\))?(.*)$/)
+      matchedContent = matchedParts[2]
+      matchedOptions = matchedParts[1]
+    } else {
+      matchedParts = matchedString.slice(1)
+      matchedParts = matchedParts.match(/^\[([^\0]+?)\]~(?:\(([\w\d:,# ]*?)\))?$/)
+      matchedContent = matchedParts[1]
+      matchedOptions = matchedParts[2]
+    }
 
-      postOptions.forEach(function (option) {
+    if (matchedOptions) {
+      matchedOptions = matchedOptions.replace(/ +/g, '').split(',')
+
+      matchedOptions.forEach(option => {
         if (option !== '') {
           readOption(options, option)
         }
       })
     }
 
-    characters = sliced.replace(/<[^>]*>/gm, '').replace(/(\r\n|\n|\r| |\t)*/gm, '').length
+    characters = matchedContent.replace(/<[^>]*>/gm, '').replace(/(\r\n|\n|\r| |\t)*/gm, '').length
 
     if (!characters) return
 
@@ -214,14 +225,14 @@ function parse (text) {
     try {
       rainbow.setSpectrumByArray(options.colors)
     } catch (e) {
-      text = text.replace(match, sliced)
       return
     }
 
     rainbow.setNumberRange(0, options.range - 1)
 
-    let parsed = '',
-      offset = 0
+    let parsed = ''
+    let offset = 0
+    let trimmed = matchedContent
 
     while (trimmed.length) {
       let c = trimmed.charAt(0)
@@ -229,7 +240,7 @@ function parse (text) {
       if (c.match(/(\n|\r)/)) {
         parsed += '<br>'
         trimmed = trimmed.substr(1)
-      } else if (c.match(/ /)) {
+      } else if (c.match(/ |\t/)) {
         parsed += ' '
         trimmed = trimmed.substr(1)
       } else if (trimmed.match(/^<\/p><p>/)) {
@@ -249,7 +260,7 @@ function parse (text) {
 
     parsed = '<span class="rainbowified">' + parsed + '</span>'
 
-    text = text.replace(match, parsed)
+    text = text.replace(matchedString, parsed)
   })
 
   return text
@@ -360,7 +371,7 @@ exports.renderHeader = function (data, cb) {
 
 // Doesn't work.
 exports.getTopic = function (data, cb) {
-  // data.topic.title = remove(data.topic.title);
+  // data.topic.title = remove(data.topic.title)
   cb(null, data)
 }
 
