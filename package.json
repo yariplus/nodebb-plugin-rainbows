@@ -15,7 +15,8 @@
     "plugin",
     "colors",
     "rainbows",
-    "redactor"
+    "redactor",
+    "pride"
   ],
   "author": {
     "name": "yariplus",
@@ -27,9 +28,6 @@
   },
   "readme": "",
   "readmeFilename": "README.md",
-  "dependencies": {
-    "async": "*"
-  },
   "nbbpm": {
     "compatibility": "^1.0.0"
   },
