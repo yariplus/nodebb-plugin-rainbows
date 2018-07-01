@@ -180,12 +180,12 @@ function parse (text) {
     if (matchedString.match(/^-=/)) {
       unsafe = true
       matchedParts = matchedString.slice(2, matchedString.length - 2)
-      matchedParts = matchedParts.match(/^(?:\(([\w\d:,# ]+?)\))?(.*)$/)
+      matchedParts = matchedParts.match(/^(?:\(([\w\d:,# ]+?)\))?(.*)$/m)
       matchedContent = matchedParts[2]
       matchedOptions = matchedParts[1]
     } else {
       matchedParts = matchedString.slice(1)
-      matchedParts = matchedParts.match(/^\[([^\0]+?)\]~(?:\(([\w\d:,# ]*?)\))?$/)
+      matchedParts = matchedParts.match(/^\[([^\0]+?)\]~(?:\(([\w\d:,# ]*?)\))?$/m)
       matchedContent = matchedParts[1]
       matchedOptions = matchedParts[2]
     }
