@@ -7,37 +7,37 @@ if (config.rainbows.postsEnabled) {
 	'</div></div>' +
 
 	'<label>Add a Color</label><br>' +
-	'<button class="btn color-preset"><div style="background-color:red;width:20px;height:20px;" data-color="red"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:orange;width:20px;height:20px;" data-color="orange"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:yellow;width:20px;height:20px;" data-color="yellow"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:lime;width:20px;height:20px;" data-color="lime"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:cyan;width:20px;height:20px;" data-color="cyan"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:blue;width:20px;height:20px;" data-color="blue"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:blueviolet;width:20px;height:20px;" data-color="blueviolet"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:violet;width:20px;height:20px;" data-color="violet"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:magenta;width:20px;height:20px;" data-color="magenta"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:red;width:20px;height:20px;" data-color="red"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:orange;width:20px;height:20px;" data-color="orange"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:yellow;width:20px;height:20px;" data-color="yellow"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:lime;width:20px;height:20px;" data-color="lime"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:cyan;width:20px;height:20px;" data-color="cyan"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:blue;width:20px;height:20px;" data-color="blue"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:blueviolet;width:20px;height:20px;" data-color="blueviolet"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:violet;width:20px;height:20px;" data-color="violet"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:magenta;width:20px;height:20px;" data-color="magenta"></div></button>' +
 
-	'<button class="btn color-preset"><div style="background-color:maroon;width:20px;height:20px;" data-color="maroon"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:sienna;width:20px;height:20px;" data-color="sienna"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:olive;width:20px;height:20px;" data-color="olive"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:green;width:20px;height:20px;" data-color="green"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:teal;width:20px;height:20px;" data-color="teal"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:navy;width:20px;height:20px;" data-color="navy"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:purple;width:20px;height:20px;" data-color="purple"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:maroon;width:20px;height:20px;" data-color="maroon"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:sienna;width:20px;height:20px;" data-color="sienna"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:olive;width:20px;height:20px;" data-color="olive"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:green;width:20px;height:20px;" data-color="green"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:teal;width:20px;height:20px;" data-color="teal"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:navy;width:20px;height:20px;" data-color="navy"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:purple;width:20px;height:20px;" data-color="purple"></div></button>' +
 
-	'<button class="btn color-preset"><div style="background-color:white;width:20px;height:20px;" data-color="white"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:silver;width:20px;height:20px;" data-color="silver"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:gray;width:20px;height:20px;" data-color="gray"></div></button>' +
-	'<button class="btn color-preset"><div style="background-color:black;width:20px;height:20px;" data-color="black"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:white;width:20px;height:20px;" data-color="white"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:silver;width:20px;height:20px;" data-color="silver"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:gray;width:20px;height:20px;" data-color="gray"></div></button>' +
+	'<button class="btn btn-default color-preset"><div style="background-color:black;width:20px;height:20px;" data-color="black"></div></button>' +
 
 	'<br>' +
-	'<button class="btn" id="picker-button"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-cog"></i>&nbsp;Custom&nbsp;Color&nbsp;</div></button>' +
-	'<button class="btn" id="color-custom"><div style="background-color:pink;width:20px;height:20px;" data-color="pink"></div></button>' +
+	'<button class="btn btn-default" id="picker-button"><div style="height:20px;">&nbsp;<i class="fa fa-cog"></i>&nbsp;Custom&nbsp;Color&nbsp;</div></button>' +
+	'<button class="btn btn-default" id="color-custom"><div style="background-color:pink;width:20px;height:20px;" data-color="pink"></div></button>' +
 
 	'<br><br>' +
 	'<label>Remove a Color</label><br>' +
-	'<button class="btn" id="rainbows-remove-one"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-minus"></i>&nbsp;One&nbsp;</div></button>' +
-	'<button class="btn" id="rainbows-remove-all"><div style="height:20px;background-color:#FBFBFB;">&nbsp;<i class="fa fa-minus"></i>&nbsp;All&nbsp;</div></button>'
+	'<button class="btn btn-default" id="rainbows-remove-one"><div style="height:20px;">&nbsp;<i class="fa fa-minus"></i>&nbsp;One&nbsp;</div></button>' +
+	'<button class="btn btn-default" id="rainbows-remove-all"><div style="height:20px;">&nbsp;<i class="fa fa-minus"></i>&nbsp;All&nbsp;</div></button>'
 
   var rainbowsComposerModal = String() +
 	'<div class="modal fade" tabindex="-1" id="rainbows-modal" role="dialog">' +
