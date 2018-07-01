@@ -67,16 +67,15 @@ if (config.rainbows.postsEnabled) {
       var selectionEnd = $('#rainbowsPreview').data('end')
       var textarea = $('#rainbowsPreview').data('el')
 
-      var sel = $('#rainbowsPreview').data('colors') ? $('#rainbowsPreview').data('colors').length : 0
-      selectionStart += sel
-      selectionEnd += sel
+      let colors = $('#rainbowsPreview').data('colors') || ''
+      let cl = colors.length
 
       if (selectionStart === selectionEnd) {
-        controls.insertIntoTextarea(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')Some Example Text=-')
-        controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 21)
+        controls.insertIntoTextarea(textarea, '~[Some Example Text]~(' + colors + ')')
+        controls.updateTextareaSelection(textarea, selectionStart + 2, selectionEnd + 19)
       } else {
-        controls.wrapSelectionInTextareaWith(textarea, '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')', '=-')
-        controls.updateTextareaSelection(textarea, selectionStart + 4, selectionEnd + 4)
+        controls.wrapSelectionInTextareaWith(textarea, '~[', ']~(' + colors + ')')
+        controls.updateTextareaSelection(textarea, selectionStart + 2, selectionEnd + 2)
       }
 
       preview.render($(textarea).parent().parent().parent())
@@ -91,6 +90,7 @@ if (config.rainbows.postsEnabled) {
       $('#rainbowsPreview').data('el', textarea)
       $('#rainbowsPreview').data('start', selectionStart)
       $('#rainbowsPreview').data('end', selectionEnd)
+      rainbowsPreview()
     })
   })
 
@@ -158,28 +158,26 @@ if (config.rainbows.postsEnabled) {
     })
 
     $('#rainbows-remove-one').on('click', function () {
-      var colors = $('#rainbowsPreview').data('colors'),
-        clip = colors.lastIndexOf(',')
+      let colors = $('#rainbowsPreview').data('colors')
+      let clip = colors ? colors.lastIndexOf(',') : false
 
-      if (~clip) {
-        colors = colors.slice(0, clip)
-        $('#rainbowsPreview').data('colors', colors)
-        rainbowsPreview()
+      if (colors && ~clip) {
+        $('#rainbowsPreview').data('colors', colors.slice(0, clip))
       } else {
         $('#rainbowsPreview').data('colors', null)
-        $('#rainbowsPreview').html($('#rainbowsPreview').text())
       }
+      rainbowsPreview()
     })
 
     $('#rainbows-remove-all').on('click', function () {
       $('#rainbowsPreview').data('colors', null)
-      $('#rainbowsPreview').html($('#rainbowsPreview').text())
+      rainbowsPreview()
     })
   }
 
   function rainbowsPreview () {
     require(['composer'], function (composer) {
-      socket.emit('plugins.rainbows.colorPost', {tid: composer.posts[composer.active].tid, content: '-=(' + ($('#rainbowsPreview').data('colors') || '') + ')' + $('#rainbowsPreview').text() + '=-'}, function (err, cotent) {
+      socket.emit('plugins.rainbows.colorPost', {tid: composer.posts[composer.active].tid, content: '~[' + $('#rainbowsPreview').text() + ']~(' + ($('#rainbowsPreview').data('colors') || '') + ')'}, function (err, cotent) {
         if (err) console.log(err)
         $('#rainbowsPreview').html(cotent)
       })
@@ -224,6 +222,7 @@ if (config.rainbows.topicsEnabled) {
   })
 }
 
+// TODO
 // Recent Cards
 $(window).on('action:ajaxify.end', function () {
   var regex = /-=((?:\([^\)]*\))?)([^\0]*?)=-/g
