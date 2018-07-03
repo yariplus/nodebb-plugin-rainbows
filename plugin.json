@@ -9,9 +9,9 @@
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:app.load",           "method": "onLoad" },
-		{ "hook": "filter:parse.raw",          "method": "parseRaw" },
-		{ "hook": "filter:parse.post",         "method": "parsePost" },
-		{ "hook": "filter:parse.signature",    "method": "parseSignature" },
+		{ "hook": "filter:parse.raw",          "method": "parseRaw", "priority": 100 },
+		{ "hook": "filter:parse.post",         "method": "parsePost", "priority": 100 },
+		{ "hook": "filter:parse.signature",    "method": "parseSignature", "priority": 100 },
 		{ "hook": "filter:topic.get",          "method": "getTopic" },
 		{ "hook": "filter:category.build",     "method": "parseController" },
 		{ "hook": "filter:recent.build",       "method": "parseController" },

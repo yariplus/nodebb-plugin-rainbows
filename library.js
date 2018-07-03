@@ -73,9 +73,7 @@ exports.onLoad = function (params, cb) {
 
   SocketPlugins.rainbows = {
     colorPost: function (socket, data, next) {
-      topics.getTopicField(data.tid, 'cid', function (err, cid) {
-        parsePost(socket.uid, cid, data.content, next)
-      })
+      plugins.fireHook('filter:parse.raw', data, next)
     },
     colorTopic: function (socket, data, next) {
       if (data.uid === -1) next(null, remove(data.title))

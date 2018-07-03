@@ -63,18 +63,18 @@ if (config.rainbows.postsEnabled) {
 
   $('#rainbows-insert').on('click', function (e) {
     require(['composer/controls', 'composer/preview'], function (controls, preview) {
-      var selectionStart = $('#rainbowsPreview').data('start')
-      var selectionEnd = $('#rainbowsPreview').data('end')
-      var textarea = $('#rainbowsPreview').data('el')
+      const selectionStart = $('#rainbowsPreview').data('start')
+      const selectionEnd = $('#rainbowsPreview').data('end')
+      const textarea = $('#rainbowsPreview').data('el')
 
       let colors = $('#rainbowsPreview').data('colors') || ''
-      let cl = colors.length
+      if (colors) colors = `(${colors})`
 
       if (selectionStart === selectionEnd) {
-        controls.insertIntoTextarea(textarea, '~[Some Example Text]~(' + colors + ')')
+        controls.insertIntoTextarea(textarea, '~[Some Example Text]~' + colors)
         controls.updateTextareaSelection(textarea, selectionStart + 2, selectionEnd + 19)
       } else {
-        controls.wrapSelectionInTextareaWith(textarea, '~[', ']~(' + colors + ')')
+        controls.wrapSelectionInTextareaWith(textarea, '~[', ']~' + colors)
         controls.updateTextareaSelection(textarea, selectionStart + 2, selectionEnd + 2)
       }
 
@@ -85,7 +85,7 @@ if (config.rainbows.postsEnabled) {
   require(['composer'], function (composer) {
     composer.addButton('rainbows', function (textarea, selectionStart, selectionEnd) {
       $('#rainbows-modal').modal()
-      $('#rainbowsPreview').html($(textarea).val().slice(selectionStart, selectionEnd) || 'Some Example Text')
+      $('#rainbowsPreview').data('selection', $(textarea).val().slice(selectionStart, selectionEnd) || 'Some Example Text')
       $('#rainbowsPreview').data('colors', null)
       $('#rainbowsPreview').data('el', textarea)
       $('#rainbowsPreview').data('start', selectionStart)
@@ -177,9 +177,9 @@ if (config.rainbows.postsEnabled) {
 
   function rainbowsPreview () {
     require(['composer'], function (composer) {
-      socket.emit('plugins.rainbows.colorPost', {tid: composer.posts[composer.active].tid, content: '~[' + $('#rainbowsPreview').text() + ']~(' + ($('#rainbowsPreview').data('colors') || '') + ')'}, function (err, cotent) {
+      socket.emit('plugins.rainbows.colorPost', '~[' + $('#rainbowsPreview').data('selection') + ']~(' + ($('#rainbowsPreview').data('colors') || '') + ')', function (err, data) {
         if (err) console.log(err)
-        $('#rainbowsPreview').html(cotent)
+        $('#rainbowsPreview').html(data)
       })
     })
   }
