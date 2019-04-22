@@ -8,7 +8,6 @@ const user = NodeBB('./src/user')
 const topics = NodeBB('./src/topics')
 const plugins = NodeBB('./src/plugins')
 const Settings = NodeBB('./src/settings')
-const emitter = NodeBB('./src/emitter')
 const SocketAdmin = NodeBB('./src/socket.io/admin')
 const SocketPlugins = NodeBB('./src/socket.io/plugins')
 
@@ -38,21 +37,6 @@ let settings
 
 // Capture rainbow format
 let regex = /-=[^\0]+?=-|~\[[^\0]+?\]~(?:\([\w\d:,# ]*?\))?/gm
-
-// Remove color from all widgets for now.
-emitter.on('nodebb:ready', function () {
-  let hooked = {}
-  Object.keys(plugins.loadedHooks).filter(function (hook) {
-    return hooked.hasOwnProperty(hook) ? false : (hooked[hook] = true)
-  }).forEach(function (hook) {
-    if (hook.match('filter:widget.render:')) {
-      plugins.loadedHooks[hook].push({
-        id: 'nodebb-plugin-rainbows',
-        method: exports.parseController
-      })
-    }
-  })
-})
 
 exports.onLoad = function (params, cb) {
   let router = params.router
